@@ -81,7 +81,7 @@
     $('queue').innerHTML = queue.length
       ? queue
           .map(
-            (s, i) => `<div class="stop">
+            (s, i) => `${TV.sessionDivider(queue, i)}<div class="stop">
           <div class="num ${s.timePref}">${i + 1}</div>
           <div class="body">${stopBody(s)}
             <div class="actions">

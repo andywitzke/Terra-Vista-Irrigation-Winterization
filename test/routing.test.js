@@ -54,3 +54,28 @@ test('handles empty and single-stop input', () => {
   assert.deepStrictEqual(planRoute([]), []);
   assert.strictEqual(planRoute([{ id: 1, lat: 1, lng: 1, pref: 'PM' }]).length, 1);
 });
+
+test('respects morning and afternoon limits, filling the morning with nearby any-time stops', () => {
+  const at = (id, pref, lat) => ({ id, pref, lat, lng: -93.45 });
+  const stops = [
+    at('am1', 'AM', 45.0),
+    at('am2', 'AM', 45.0005),
+    at('pm1', 'PM', 45.02),
+    ...Array.from({ length: 12 }, (_, i) => at(`any${i}`, 'ANY', 45.001 + i * 0.0015)),
+  ];
+  const route = planRoute(stops, { amCapacity: 5, pmCapacity: 10 });
+  const am = route.filter((s) => s.session === 'AM');
+  const pm = route.filter((s) => s.session === 'PM');
+  assert.strictEqual(am.length, 5);
+  assert.strictEqual(pm.length, 10);
+  assert.ok(route.indexOf(am[am.length - 1]) < route.indexOf(pm[0]), 'morning block comes first');
+  // the any-time stops that joined the morning are the ones nearest the morning houses
+  assert.deepStrictEqual(am.filter((s) => s.pref === 'ANY').map((s) => s.id).sort(), ['any0', 'any1', 'any2']);
+});
+
+test('afternoon overflow pushes extra any-time stops into the morning', () => {
+  const stops = Array.from({ length: 6 }, (_, i) => ({ id: i, pref: i < 2 ? 'PM' : 'ANY', lat: 45 + i * 0.001, lng: -93.45 }));
+  const route = planRoute(stops, { amCapacity: 10, pmCapacity: 3 });
+  assert.strictEqual(route.filter((s) => s.session === 'PM').length, 3);
+  assert.strictEqual(route.filter((s) => s.session === 'AM').length, 3);
+});

@@ -2,9 +2,9 @@
 
 A small web app for scheduling irrigation-system winterization in the Terra Vista neighborhood.
 
-- **Neighbors** sign up with their address, mobile number and notes, and pick every day that works for them, choosing
+- **Neighbors** sign up with their name, address, mobile number and notes, and pick every day that works for them, choosing
   morning, afternoon or any time for each. They get a text with a private link to view, change or cancel.
-- **The administrator** opens dates for sign-up (25 spots each by default), sees and edits every sign-up, adds or removes
+- **The administrator** opens dates for sign-up (10 morning and 15 afternoon spots each by default), sees and edits every sign-up, adds or removes
   people, views everything on a map, and exports to CSV.
 - **The technician** gets the day's route, ordered by proximity and AM/PM preference. From a phone they mark houses
   complete, reorder or re-plan the route, share their live location, and move unfinished houses to the next available day.
@@ -50,7 +50,7 @@ Set these as environment variables or in `.env` (see `.env.example`):
 | `GOOGLE_MAPS_MAP_ID` | Optional Map ID for Advanced Markers (`DEMO_MAP_ID` is used otherwise) |
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | Twilio credentials |
 | `TWILIO_FROM_NUMBER` or `TWILIO_MESSAGING_SERVICE_SID` | Sender for texts |
-| `NEIGHBORHOOD_NAME`, `TZ_NAME`, `DEFAULT_DAY_CAPACITY`, `PORT`, `DB_PATH` | Other settings |
+| `NEIGHBORHOOD_NAME`, `TZ_NAME`, `DEFAULT_AM_CAPACITY` (10), `DEFAULT_PM_CAPACITY` (15), `PORT`, `DB_PATH` | Other settings |
 
 ### Google Maps
 
@@ -70,12 +70,16 @@ handles STOP/HELP replies automatically. Every attempt, successful or not, appea
 
 ## How scheduling works
 
-- **Capacity.** A person occupies one spot, on the day they're scheduled for. When they sign up they're placed on the
-  **earliest** of their chosen days that still has room. Their other chosen days are remembered as backups. Full days show
-  as "Full" on the sign-up form. Admins can go over capacity with a checkbox.
-- **Route.** For each day, morning stops are put in the shortest order from the start point, afternoon stops continue from
-  where the morning ends, and "any time" stops are slotted in wherever they add the least driving. The route uses
-  straight-line distance (nearest-neighbor plus 2-opt), which works well inside a neighborhood and doesn't need Google
+- **Capacity.** Each date has a morning limit and an afternoon limit (10 and 15 by default, 25 in total), editable per
+  date on the Dates tab. A "morning" or "afternoon" sign-up takes a spot in that half of the day. An "any time" sign-up
+  only needs a spot somewhere in the day. On the sign-up form a full half is greyed out, and a date shows "Full" when no
+  spots are left. A person is placed on the **earliest** of their chosen days with room for the time they picked; their
+  other chosen days are kept as backups. Admins can go over the limits with a checkbox.
+- **Route.** For each day, "any time" houses are assigned to the morning or afternoon. The ones nearest the morning
+  houses go to the morning, as long as neither half goes over its limit. Morning stops are then put in the shortest
+  order from the start point, and afternoon stops continue from where the morning ends. The technician's list shows
+  where the afternoon starts. The route uses straight-line distance (nearest-neighbor plus 2-opt), which works well
+  inside a neighborhood and doesn't need Google
   quota. Set a **start point** (for example the neighborhood entrance) under Admin → Settings.
 - **Locking.** Until the technician starts the day, the route is re-planned automatically as people sign up or change.
   Once the day starts, or the tech reorders stops or taps **Re-plan from here**, the order is kept, and late additions

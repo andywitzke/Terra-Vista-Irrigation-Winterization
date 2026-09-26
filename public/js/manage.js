@@ -87,6 +87,7 @@
       notes: $('notes').value,
       smsOptIn: $('smsOptIn').checked,
     };
+    if (!body.name.trim()) return showAlert($('form-msg'), 'Please enter your name.');
     if (!$('days-block').classList.contains('hidden')) {
       body.prefs = readDayPicker($('days'));
       if (!body.prefs.length) return showAlert($('form-msg'), 'Please choose at least one date.');

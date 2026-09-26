@@ -59,7 +59,14 @@ app.get('/api/config', (req, res) =>
 
 app.get('/api/days', (req, res) =>
   res.json(
-    svc.listDays({ publicOnly: true }).map((d) => ({ id: d.id, date: d.date, remaining: d.remaining, full: d.full }))
+    svc.listDays({ publicOnly: true }).map((d) => ({
+      id: d.id,
+      date: d.date,
+      remaining: d.remaining,
+      amRemaining: d.amRemaining,
+      pmRemaining: d.pmRemaining,
+      full: d.full,
+    }))
   )
 );
 
@@ -151,15 +158,27 @@ app.use('/api/staff', staff);
 const admin = express.Router();
 admin.use(requireRole('admin'));
 
+function sessionLimit(value, fallback, label) {
+  const n = value === undefined || value === null || value === '' ? fallback : Number(value);
+  if (!Number.isInteger(n) || n < 0 || n > 100) throw new HttpError(400, `${label} limit must be a whole number from 0 to 100.`);
+  return n;
+}
+
 admin.post(
   '/days',
   h(async (req) => {
     const dates = Array.isArray(req.body?.dates) ? req.body.dates : [req.body?.date];
-    const capacity = Number(req.body?.capacity) || config.defaultCapacity;
     if (!dates.length || !dates.every(isValidDate)) throw new HttpError(400, 'Use dates in YYYY-MM-DD format.');
-    if (capacity < 1 || capacity > 200) throw new HttpError(400, 'Capacity must be between 1 and 200.');
+    const am = sessionLimit(req.body?.amCapacity, config.defaultAmCapacity, 'Morning');
+    const pm = sessionLimit(req.body?.pmCapacity, config.defaultPmCapacity, 'Afternoon');
     for (const date of dates) {
-      run('INSERT INTO work_days (date, capacity) VALUES (?, ?) ON CONFLICT(date) DO NOTHING', date, capacity);
+      run(
+        'INSERT INTO work_days (date, capacity, am_capacity, pm_capacity) VALUES (?, ?, ?, ?) ON CONFLICT(date) DO NOTHING',
+        date,
+        am + pm,
+        am,
+        pm
+      );
     }
     return svc.listDays();
   })
@@ -170,12 +189,15 @@ admin.put(
   h(async (req) => {
     const day = svc.getDay(id(req));
     const b = req.body || {};
-    const capacity = b.capacity === undefined ? day.capacity : Number(b.capacity);
-    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 200) throw new HttpError(400, 'Capacity must be between 1 and 200.');
+    const am = sessionLimit(b.amCapacity, day.am_capacity, 'Morning');
+    const pm = sessionLimit(b.pmCapacity, day.pm_capacity, 'Afternoon');
+    if (am + pm < 1) throw new HttpError(400, 'A day needs at least one spot.');
     const status = ['scheduled', 'in_progress', 'done'].includes(b.status) ? b.status : day.status;
     run(
-      'UPDATE work_days SET capacity = ?, is_open = ?, notes = ?, status = ?, route_locked = ? WHERE id = ?',
-      capacity,
+      'UPDATE work_days SET capacity = ?, am_capacity = ?, pm_capacity = ?, is_open = ?, notes = ?, status = ?, route_locked = ? WHERE id = ?',
+      am + pm,
+      am,
+      pm,
       b.isOpen === undefined ? day.is_open : b.isOpen ? 1 : 0,
       String(b.notes ?? day.notes).slice(0, 500),
       status,
@@ -244,6 +266,7 @@ function adminSignupRows({ dayId, status } = {}) {
     assignedDayId: s.assigned_day_id,
     assignedDate: s.day_date,
     routeOrder: s.route_order,
+    session: s.route_session,
     completedAt: s.completed_at,
     createdAt: s.created_at,
     prefs: bySignup.get(s.id) || [],
@@ -281,7 +304,7 @@ function csvCell(v) {
 admin.get('/export.csv', (req, res) => {
   const rows = adminSignupRows({ dayId: req.query.dayId, status: req.query.status });
   const header = [
-    'Service Date', 'Time Preference', 'Route #', 'Status', 'Name', 'Address', 'Google Address', 'Phone',
+    'Service Date', 'Time Preference', 'Planned Session', 'Route #', 'Status', 'Name', 'Address', 'Google Address', 'Phone',
     'Neighbor Notes', 'Technician Notes', 'Acceptable Dates', 'Texts OK', 'Completed At', 'Signed Up At',
   ];
   const lines = [header.map(csvCell).join(',')];
@@ -290,6 +313,7 @@ admin.get('/export.csv', (req, res) => {
       [
         r.assignedDate || '',
         r.timePref,
+        r.status === 'scheduled' || r.status === 'completed' ? r.session || '' : '',
         r.status === 'scheduled' ? r.routeOrder ?? '' : '',
         r.status,
         r.name,

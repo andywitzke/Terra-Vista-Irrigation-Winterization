@@ -12,7 +12,9 @@ db.exec(`
 CREATE TABLE IF NOT EXISTS work_days (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   date TEXT NOT NULL UNIQUE,              -- YYYY-MM-DD
-  capacity INTEGER NOT NULL DEFAULT 25,
+  capacity INTEGER NOT NULL DEFAULT 25,   -- always am_capacity + pm_capacity
+  am_capacity INTEGER NOT NULL DEFAULT 10,
+  pm_capacity INTEGER NOT NULL DEFAULT 15,
   is_open INTEGER NOT NULL DEFAULT 1,     -- accepting public sign-ups
   status TEXT NOT NULL DEFAULT 'scheduled', -- scheduled | in_progress | done
   route_locked INTEGER NOT NULL DEFAULT 0,  -- 1 once the tech starts or reorders
@@ -36,6 +38,7 @@ CREATE TABLE IF NOT EXISTS signups (
   assigned_day_id INTEGER REFERENCES work_days(id) ON DELETE SET NULL,
   time_pref TEXT NOT NULL DEFAULT 'ANY',  -- AM | PM | ANY for the assigned day
   route_order INTEGER,
+  route_session TEXT,
   completed_at TEXT,
   tech_notes TEXT NOT NULL DEFAULT '',
   notified_second_at TEXT,
@@ -79,6 +82,21 @@ CREATE TABLE IF NOT EXISTS settings (
   value TEXT
 );
 `);
+
+// ---- migrations for databases created by earlier versions
+const hasColumn = (table, col) => db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === col);
+if (!hasColumn('work_days', 'am_capacity')) {
+  // Split each existing day's total into a morning and afternoon limit (10 AM, rest PM).
+  db.exec(`
+    ALTER TABLE work_days ADD COLUMN am_capacity INTEGER NOT NULL DEFAULT 10;
+    ALTER TABLE work_days ADD COLUMN pm_capacity INTEGER NOT NULL DEFAULT 15;
+    UPDATE work_days SET am_capacity = MIN(10, capacity), pm_capacity = MAX(0, capacity - MIN(10, capacity));
+  `);
+}
+if (!hasColumn('signups', 'route_session')) {
+  // Which half of the day the route planner put this stop in: AM | PM
+  db.exec('ALTER TABLE signups ADD COLUMN route_session TEXT');
+}
 
 let txDepth = 0;
 /** Run fn inside a transaction (nested calls join the outer transaction). */

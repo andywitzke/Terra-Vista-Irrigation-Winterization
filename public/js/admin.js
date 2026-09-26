@@ -50,8 +50,10 @@
           .map(
             (d) => `<tr>
         <td><b>${esc(prettyDate(d.date))}</b></td>
-        <td>${d.booked}${d.completed ? ` <span class="small muted">(${d.completed} done)</span>` : ''}${d.full ? ' <span class="pill unscheduled">Full</span>' : ''}</td>
-        <td><input type="number" min="1" max="200" value="${d.capacity}" data-cap="${d.id}" style="width:80px"></td>
+        <td>${d.booked}/${d.capacity}${d.full ? ' <span class="pill unscheduled">Full</span>' : ''}
+          <div class="small muted">Morning ${d.bookedAm} · Afternoon ${d.bookedPm} · Any time ${d.bookedAny}${d.completed ? ` · ${d.completed} done` : ''}</div></td>
+        <td><input type="number" min="0" max="100" value="${d.am_capacity}" data-am="${d.id}" class="cap-input" aria-label="Morning limit"></td>
+        <td><input type="number" min="0" max="100" value="${d.pm_capacity}" data-pm="${d.id}" class="cap-input" aria-label="Afternoon limit"></td>
         <td><input type="checkbox" data-open="${d.id}" ${d.is_open ? 'checked' : ''} aria-label="Open to public"></td>
         <td><span class="pill ${d.status}">${DAY_STATUS[d.status]}</span></td>
         <td class="actions">
@@ -63,7 +65,7 @@
         </td></tr>`
           )
           .join('')
-      : '<tr><td colspan="6" class="muted">No dates yet. Add the first one above.</td></tr>';
+      : '<tr><td colspan="7" class="muted">No dates yet. Add the first one above.</td></tr>';
   }
 
   $('add-days-form').addEventListener('submit', async (e) => {
@@ -77,7 +79,10 @@
       if (start === end || $('d-weekends').checked || (dow !== 0 && dow !== 6)) dates.push(d.toISOString().slice(0, 10));
     }
     if (dates.length > 60) return toast('That range is more than 60 days.', true);
-    await call('/api/admin/days', { method: 'POST', body: { dates, capacity: Number($('d-cap').value) } });
+    await call('/api/admin/days', {
+      method: 'POST',
+      body: { dates, amCapacity: Number($('d-am').value), pmCapacity: Number($('d-pm').value) },
+    });
     toast(`Added ${dates.length} date(s).`);
     $('d-start').value = '';
     $('d-end').value = '';
@@ -87,7 +92,8 @@
   $('day-rows').addEventListener('change', async (e) => {
     const t = e.target;
     try {
-      if (t.dataset.cap) await call(`/api/admin/days/${t.dataset.cap}`, { method: 'PUT', body: { capacity: Number(t.value) } });
+      if (t.dataset.am) await call(`/api/admin/days/${t.dataset.am}`, { method: 'PUT', body: { amCapacity: Number(t.value) } });
+      if (t.dataset.pm) await call(`/api/admin/days/${t.dataset.pm}`, { method: 'PUT', body: { pmCapacity: Number(t.value) } });
       if (t.dataset.open) await call(`/api/admin/days/${t.dataset.open}`, { method: 'PUT', body: { isOpen: t.checked } });
       toast('Saved.');
       loadDays();
@@ -129,7 +135,7 @@
             (s) => `<tr>
         <td>${s.assignedDate ? esc(prettyDate(s.assignedDate, { short: true })) : '<span class="muted">—</span>'}</td>
         <td>${s.status === 'scheduled' && s.routeOrder ? s.routeOrder : ''}</td>
-        <td><span class="pill ${s.timePref}">${PREF_LABEL[s.timePref]}</span></td>
+        <td><span class="pill ${s.timePref}">${PREF_LABEL[s.timePref]}</span>${s.timePref === 'ANY' && s.session && s.status === 'scheduled' ? `<div class="small muted">→ ${s.session === 'AM' ? 'morning' : 'afternoon'}</div>` : ''}</td>
         <td><b>${esc(s.name || '')}</b>${s.name ? '<br>' : ''}${esc(s.address)}
           ${Number.isFinite(s.lat) ? '' : `<br><span class="small" style="color:var(--warn)">Not located</span> <button class="link small" data-geo="${s.id}">retry</button>`}</td>
         <td><a href="tel:${esc(s.phone)}">${esc(formatPhone(s.phone))}</a>${s.smsOptIn ? '' : '<br><span class="small muted">no texts</span>'}</td>
@@ -176,7 +182,9 @@
     $('e-notify-label').textContent = isNew ? 'Send confirmation text' : 'Text them if their date changes';
     renderDayPicker(
       $('e-days'),
-      days.filter((d) => d.status !== 'done').map((d) => ({ id: d.id, date: d.date, remaining: d.remaining, full: false })),
+      days
+        .filter((d) => d.status !== 'done')
+        .map((d) => ({ id: d.id, date: d.date, remaining: d.remaining, amRemaining: d.amRemaining, pmRemaining: d.pmRemaining, full: false })),
       new Map((s.prefs || []).map((p) => [p.dayId, p.timePref]))
     );
     showAlert($('edit-err'), '');
@@ -289,7 +297,7 @@
     $('m-queue').innerHTML = view.queue.length
       ? view.queue
           .map(
-            (s, i) => `<div class="stop"><div class="num ${s.timePref}">${i + 1}</div><div class="body">
+            (s, i) => `${TV.sessionDivider(view.queue, i)}<div class="stop"><div class="num ${s.timePref}">${i + 1}</div><div class="body">
           <div class="title">${esc(s.address)} <span class="pill ${s.timePref}">${PREF_LABEL[s.timePref]}</span></div>
           <div class="small muted">${esc(s.name || '')} ${esc(formatPhone(s.phone))}
           ${s.notifiedNext ? ' · texted "next"' : s.notifiedSecond ? ' · texted "2nd"' : ''}</div></div></div>`
@@ -345,6 +353,7 @@
   });
 
   const TABS = ['signups', 'days', 'map', 'texts', 'settings'];
-  const fromHash = location.hash.slice(1);
-  showTab(TABS.includes(fromHash) ? fromHash : 'signups');
+  const tabFromHash = () => (TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'signups');
+  window.addEventListener('hashchange', () => tabFromHash() !== activeTab && showTab(tabFromHash()));
+  showTab(tabFromHash());
 })();

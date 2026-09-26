@@ -97,7 +97,7 @@
   /**
    * Render the "which days work" picker.
    * @param {HTMLElement} container
-   * @param {Array<{id,date,remaining,full}>} days
+   * @param {Array<{id,date,remaining,amRemaining,pmRemaining,full}>} days  (remaining null = unknown)
    * @param {Map<number,string>} selected dayId -> AM|PM|ANY
    */
   function renderDayPicker(container, days, selected = new Map()) {
@@ -105,16 +105,29 @@
       container.innerHTML = '<p class="muted">No dates are open for sign-up right now. Please check back soon.</p>';
       return;
     }
+    const left = (n) => (n > 0 ? `${n} left` : 'full');
     container.innerHTML = days
       .map((d) => {
         const sel = selected.has(d.id);
-        const pref = selected.get(d.id) || 'ANY';
+        const known = d.remaining != null;
+        // A session they already hold stays selectable even when it's now full.
+        const open = {
+          AM: !known || d.amRemaining > 0 || selected.get(d.id) === 'AM',
+          PM: !known || d.pmRemaining > 0 || selected.get(d.id) === 'PM',
+          ANY: !known || d.remaining > 0 || selected.get(d.id) === 'ANY',
+        };
+        let pref = selected.get(d.id) || 'ANY';
+        if (!open[pref]) pref = ['ANY', 'AM', 'PM'].find((p) => open[p]) || pref;
         const disabled = d.full && !sel;
-        const spots = d.full ? 'Full' : d.remaining == null ? '' : `${d.remaining} spot${d.remaining === 1 ? '' : 's'} left`;
+        const spots = !known
+          ? ''
+          : d.full
+            ? 'Full'
+            : `Morning ${left(d.amRemaining)} · Afternoon ${left(d.pmRemaining)}`;
         const seg = ['AM', 'PM', 'ANY']
           .map(
             (p) =>
-              `<label><input type="radio" name="pref-${d.id}" value="${p}" ${pref === p ? 'checked' : ''}><span>${PREF_LABEL[p]}</span></label>`
+              `<label><input type="radio" name="pref-${d.id}" value="${p}" ${pref === p ? 'checked' : ''} ${open[p] ? '' : 'disabled'}><span>${PREF_LABEL[p]}${open[p] ? '' : ' (full)'}</span></label>`
           )
           .join('');
         return `<div class="day${sel ? ' selected' : ''}${d.full ? ' full' : ''}" data-day="${d.id}">
@@ -142,6 +155,14 @@
       }));
   }
 
+  /** "Morning" / "Afternoon" heading before stop i of a planned queue (only when both halves have stops). */
+  function sessionDivider(queue, i) {
+    const firstPm = queue.findIndex((q) => q.session === 'PM');
+    if (firstPm <= 0) return '';
+    if (i === 0) return '<div class="session-divider">Morning</div>';
+    return i === firstPm ? '<div class="session-divider">Afternoon</div>' : '';
+  }
+
   async function logout() {
     await api('/api/logout', { method: 'POST' }).catch(() => {});
     location.href = '/';
@@ -160,6 +181,7 @@
     showAlert,
     renderDayPicker,
     readDayPicker,
+    sessionDivider,
     logout,
   };
 })();

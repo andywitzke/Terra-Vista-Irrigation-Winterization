@@ -24,7 +24,8 @@ const config = {
   neighborhoodName: env.NEIGHBORHOOD_NAME || 'Terra Vista',
   // Appended to addresses before geocoding so "123 Main St" resolves inside the neighborhood.
   addressSuffix: env.ADDRESS_SUFFIX || '',
-  defaultCapacity: Number(env.DEFAULT_DAY_CAPACITY) || 25,
+  defaultAmCapacity: Number(env.DEFAULT_AM_CAPACITY) || 10,
+  defaultPmCapacity: Number(env.DEFAULT_PM_CAPACITY) || 15,
 
   adminPassword: (env.ADMIN_PASSWORD || '').trim() || 'admin',
   techPassword: (env.TECH_PASSWORD || '').trim() || 'tech',

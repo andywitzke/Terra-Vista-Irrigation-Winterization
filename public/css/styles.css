@@ -133,6 +133,7 @@ button.link { background: none; border: none; padding: 0; min-height: 0; color: 
 .seg label:last-child span { border-right: none; }
 .seg input:checked + span { background: var(--primary); color: #fff; }
 .seg input:focus-visible + span { outline: 2px solid var(--primary); }
+.seg input:disabled + span { color: var(--muted); background: var(--surface-2); cursor: not-allowed; text-decoration: line-through; }
 
 /* Status */
 .status-big { font-size: 1.25rem; font-weight: 700; }
@@ -195,6 +196,12 @@ button.link { background: none; border: none; padding: 0; min-height: 0; color: 
 .stop .body { flex: 1; min-width: 0; }
 .stop .title { font-weight: 600; overflow-wrap: anywhere; }
 .stop .actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.session-divider {
+  display: flex; align-items: center; gap: 10px; margin: 14px 0 2px; font-size: 0.8rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);
+}
+.session-divider::before, .session-divider::after { content: ""; flex: 1; border-top: 1px dashed var(--border); }
+.cap-input { width: 64px; }
 .note { background: var(--warn-soft); color: #5c3b00; border-radius: 6px; padding: 4px 8px; margin-top: 4px; font-size: 0.9rem; overflow-wrap: anywhere; }
 
 /* Admin */

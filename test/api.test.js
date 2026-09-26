@@ -61,7 +61,7 @@ test('full season flow', async (t) => {
   const d1 = addDays(3);
   const d2 = addDays(4);
   const d3 = addDays(5);
-  let r = await req('POST', '/api/admin/days', { dates: [d1, d2, d3], capacity: 3 }, 'admin');
+  let r = await req('POST', '/api/admin/days', { dates: [d1, d2, d3], amCapacity: 2, pmCapacity: 1 }, 'admin');
   assert.strictEqual(r.status, 200);
   const [day1, day2, day3] = r.data;
 
@@ -101,12 +101,12 @@ test('full season flow', async (t) => {
   });
 
   await t.test('duplicate sign-up is rejected and the link is re-sent', async () => {
-    r = await req('POST', '/api/signups', { address: '100 terra vista dr', phone: '916-555-0100', prefs: [{ dayId: day2.id }] });
+    r = await req('POST', '/api/signups', { name: 'Dup', address: '100 terra vista dr', phone: '916-555-0100', prefs: [{ dayId: day2.id }] });
     assert.strictEqual(r.status, 409);
   });
 
   await t.test('choosing only full days is rejected', async () => {
-    r = await req('POST', '/api/signups', { address: '999 Elm', phone: '9165559999', prefs: [{ dayId: day1.id }] });
+    r = await req('POST', '/api/signups', { name: 'Late', address: '999 Elm', phone: '9165559999', prefs: [{ dayId: day1.id }] });
     assert.strictEqual(r.status, 409);
   });
 
@@ -155,7 +155,7 @@ test('full season flow', async (t) => {
   });
 
   await t.test('moving when no day has room marks the stop as needing a date', async () => {
-    run('UPDATE work_days SET capacity = 1 WHERE id = ?', day3.id);
+    run('UPDATE work_days SET capacity = 1, am_capacity = 0, pm_capacity = 1 WHERE id = ?', day3.id);
     const s = all('SELECT id FROM signups WHERE assigned_day_id = ?', day2.id)[0];
     r = await req('POST', `/api/staff/signups/${s.id}/move-next`, {}, 'tech');
     assert.strictEqual(r.data.day, null);
@@ -163,7 +163,7 @@ test('full season flow', async (t) => {
   });
 
   await t.test('admin can add, edit, export and delete', async () => {
-    r = await req('POST', '/api/admin/signups', { address: '1 Admin Way', phone: '9165551111', assignedDayId: day3.id, timePref: 'AM', allowOverCapacity: true }, 'admin');
+    r = await req('POST', '/api/admin/signups', { name: 'Admin Added', address: '1 Admin Way', phone: '9165551111', assignedDayId: day3.id, timePref: 'AM', allowOverCapacity: true }, 'admin');
     assert.strictEqual(r.status, 200, JSON.stringify(r.data));
     const id = r.data.id;
     r = await req('PUT', `/api/admin/signups/${id}`, { notes: '=HYPERLINK("x")' }, 'admin');
@@ -181,6 +181,63 @@ test('full season flow', async (t) => {
   await t.test('neighbor can cancel', async () => {
     r = await req('DELETE', `/api/signups/${tokens[3]}`);
     assert.strictEqual(r.data.status, 'cancelled');
+  });
+});
+
+test('name is required', async () => {
+  const [day] = (await req('POST', '/api/admin/days', { date: addDays(20) }, 'admin')).data.filter((d) => d.date === addDays(20));
+  let r = await req('POST', '/api/signups', { name: '  ', address: '5 Nameless Ct', phone: '9165552000', prefs: [{ dayId: day.id }] });
+  assert.strictEqual(r.status, 400);
+  assert.match(r.data.error, /name/i);
+  r = await req('POST', '/api/signups', { name: 'Has Name', address: '5 Nameless Ct', phone: '9165552000', prefs: [{ dayId: day.id }] });
+  assert.strictEqual(r.status, 200);
+  r = await req('PUT', `/api/signups/${r.data.token}`, { name: '' });
+  assert.strictEqual(r.status, 400);
+});
+
+test('morning and afternoon limits are enforced separately', async (t) => {
+  const date = addDays(30);
+  let r = await req('POST', '/api/admin/days', { date, amCapacity: 1, pmCapacity: 2 }, 'admin');
+  const day = r.data.find((d) => d.date === date);
+  assert.deepStrictEqual([day.am_capacity, day.pm_capacity, day.capacity], [1, 2, 3], 'defaults are overridden and total kept in sync');
+  let n = 0;
+  const signUp = (timePref) =>
+    req('POST', '/api/signups', { name: `S${n}`, address: `${++n} Session St`, phone: `91655530${String(n).padStart(2, '0')}`, prefs: [{ dayId: day.id, timePref }] });
+  const room = async () => (await req('GET', '/api/days')).data.find((d) => d.id === day.id);
+
+  await t.test('morning fills at its own limit', async () => {
+    assert.strictEqual((await signUp('AM')).status, 200);
+    const d = await room();
+    assert.deepStrictEqual([d.amRemaining, d.pmRemaining, d.remaining], [0, 2, 2]);
+    assert.strictEqual((await signUp('AM')).status, 409);
+  });
+  await t.test('any-time uses whichever half has room', async () => {
+    assert.strictEqual((await signUp('ANY')).status, 200);
+    const d = await room();
+    assert.deepStrictEqual([d.amRemaining, d.pmRemaining, d.remaining], [0, 1, 1]);
+  });
+  await t.test('afternoon then fills, and the day is full', async () => {
+    assert.strictEqual((await signUp('PM')).status, 200);
+    const d = await room();
+    assert.deepStrictEqual([d.amRemaining, d.pmRemaining, d.remaining, d.full], [0, 0, 0, true]);
+  });
+  await t.test('day reports full with no room in either half', async () => {
+    const d = (await req('GET', '/api/staff/days', null, 'admin')).data.find((x) => x.id === day.id);
+    assert.strictEqual(d.full, true);
+    assert.deepStrictEqual([d.bookedAm, d.bookedPm, d.bookedAny], [1, 1, 1]);
+    assert.strictEqual((await signUp('ANY')).status, 409);
+  });
+  await t.test('route keeps the morning within its limit', async () => {
+    const view = (await req('GET', `/api/staff/days/${day.id}`, null, 'tech')).data;
+    const am = view.queue.filter((q) => q.session === 'AM');
+    assert.strictEqual(am.length, 1);
+    assert.strictEqual(am[0].timePref, 'AM');
+    assert.ok(view.queue.filter((q) => q.session === 'PM').every((q) => q.timePref !== 'AM'));
+  });
+  await t.test('admin can change the limits', async () => {
+    r = await req('PUT', `/api/admin/days/${day.id}`, { amCapacity: 3 }, 'admin');
+    const d = r.data.find((x) => x.id === day.id);
+    assert.deepStrictEqual([d.am_capacity, d.pm_capacity, d.capacity, d.full], [3, 2, 5, false]);
   });
 });
 

@@ -23,16 +23,47 @@ const TECH_LOCATION_FRESH_MS = 15 * 60 * 1000;
 
 // ---------------------------------------------------------------- days
 
-function bookedCounts() {
+/** Slots taken on each day, by the time preference each sign-up holds. */
+function sessionCounts({ dayId = null, excludeSignupId = null } = {}) {
   const rows = all(
-    `SELECT assigned_day_id AS dayId, COUNT(*) AS n FROM signups
-     WHERE assigned_day_id IS NOT NULL AND status IN ${ACTIVE} GROUP BY assigned_day_id`
+    `SELECT assigned_day_id AS dayId, time_pref AS pref, COUNT(*) AS n FROM signups
+     WHERE assigned_day_id IS NOT NULL AND status IN ${ACTIVE} AND id != ?
+     ${dayId ? 'AND assigned_day_id = ?' : ''} GROUP BY assigned_day_id, time_pref`,
+    excludeSignupId ?? -1,
+    ...(dayId ? [dayId] : [])
   );
-  return new Map(rows.map((r) => [r.dayId, r.n]));
+  const byDay = new Map();
+  for (const r of rows) {
+    if (!byDay.has(r.dayId)) byDay.set(r.dayId, { AM: 0, PM: 0, ANY: 0 });
+    byDay.get(r.dayId)[r.pref === 'AM' || r.pref === 'PM' ? r.pref : 'ANY'] += r.n;
+  }
+  return byDay;
+}
+
+/**
+ * Room left on a day. Morning and afternoon sign-ups each fill their own session;
+ * "any time" sign-ups can go in whichever session has space, so they only need
+ * room in the day's total.
+ */
+function availability(day, c = { AM: 0, PM: 0, ANY: 0 }) {
+  const booked = c.AM + c.PM + c.ANY;
+  const total = day.am_capacity + day.pm_capacity;
+  const anyLeft = Math.max(0, total - booked);
+  return {
+    booked,
+    AM: Math.max(0, Math.min(day.am_capacity - c.AM, anyLeft)),
+    PM: Math.max(0, Math.min(day.pm_capacity - c.PM, anyLeft)),
+    ANY: anyLeft,
+  };
+}
+
+function roomFor(day, pref, { excludeSignupId = null } = {}) {
+  const c = sessionCounts({ dayId: day.id, excludeSignupId }).get(day.id);
+  return availability(day, c)[normalizePref(pref)] > 0;
 }
 
 function listDays({ publicOnly = false } = {}) {
-  const counts = bookedCounts();
+  const counts = sessionCounts();
   const completed = new Map(
     all(`SELECT assigned_day_id AS dayId, COUNT(*) AS n FROM signups WHERE status = 'completed' GROUP BY assigned_day_id`).map(
       (r) => [r.dayId, r.n]
@@ -42,15 +73,21 @@ function listDays({ publicOnly = false } = {}) {
     ? all(`SELECT * FROM work_days WHERE is_open = 1 AND status = 'scheduled' AND date >= ? ORDER BY date`, today())
     : all('SELECT * FROM work_days ORDER BY date');
   return days.map((d) => {
-    const booked = counts.get(d.id) || 0;
+    const c = counts.get(d.id) || { AM: 0, PM: 0, ANY: 0 };
+    const a = availability(d, c);
     return {
       ...d,
       is_open: Boolean(d.is_open),
       route_locked: Boolean(d.route_locked),
-      booked,
+      booked: a.booked,
+      bookedAm: c.AM,
+      bookedPm: c.PM,
+      bookedAny: c.ANY,
       completed: completed.get(d.id) || 0,
-      remaining: Math.max(0, d.capacity - booked),
-      full: booked >= d.capacity,
+      remaining: a.ANY,
+      amRemaining: a.AM,
+      pmRemaining: a.PM,
+      full: a.ANY <= 0,
     };
   });
 }
@@ -61,13 +98,8 @@ function getDay(id) {
   return d;
 }
 
-function bookedOn(dayId) {
-  return get(`SELECT COUNT(*) AS n FROM signups WHERE assigned_day_id = ? AND status IN ${ACTIVE}`, dayId).n;
-}
-
-function hasRoom(day) {
-  return bookedOn(day.id) < day.capacity;
-}
+const SESSION_WORD = { AM: 'morning', PM: 'afternoon', ANY: 'day' };
+const fullMessage = (day, pref) => `The ${SESSION_WORD[normalizePref(pref)]} of ${prettyDate(day.date)} is full.`;
 
 // ---------------------------------------------------------------- signups
 
@@ -135,6 +167,12 @@ function cleanPrefs(prefs) {
   return [...seen].map(([dayId, timePref]) => ({ dayId, timePref }));
 }
 
+function validateName(name) {
+  const n = String(name || '').trim().slice(0, 100);
+  if (!n) throw new HttpError(400, 'Please enter your name.');
+  return n;
+}
+
 function validateContact({ address, phone }) {
   const addr = String(address || '').trim();
   if (addr.length < 4) throw new HttpError(400, 'Please enter your street address.');
@@ -156,12 +194,7 @@ function chooseDay(prefs, { publicRules, ignoreSignupId = null }) {
     const d = p.day;
     if (d.status === 'done') continue;
     if (publicRules && (!d.is_open || d.status !== 'scheduled' || d.date < today())) continue;
-    let booked = bookedOn(d.id);
-    if (ignoreSignupId) {
-      const self = get('SELECT assigned_day_id, status FROM signups WHERE id = ?', ignoreSignupId);
-      if (self && self.assigned_day_id === d.id && ['scheduled', 'completed'].includes(self.status)) booked--;
-    }
-    if (booked < d.capacity) return p;
+    if (roomFor(d, p.timePref, { excludeSignupId: ignoreSignupId })) return p;
   }
   return null;
 }
@@ -205,8 +238,8 @@ async function sendConfirmation(s) {
 }
 
 async function createSignup(input, { admin = false } = {}) {
+  const name = validateName(input.name);
   const { address, phone } = validateContact(input);
-  const name = String(input.name || '').trim().slice(0, 100);
   const notes = String(input.notes || '').trim().slice(0, 1000);
   const smsOptIn = input.smsOptIn === undefined ? true : Boolean(input.smsOptIn);
   const prefs = cleanPrefs(input.prefs);
@@ -234,12 +267,12 @@ async function createSignup(input, { admin = false } = {}) {
     let chosen;
     if (forcedDayId) {
       const day = getDay(forcedDayId);
-      if (!input.allowOverCapacity && !hasRoom(day)) throw new HttpError(409, `${prettyDate(day.date)} is full.`);
       chosen = prefs.find((p) => p.dayId === forcedDayId);
+      if (!input.allowOverCapacity && !roomFor(day, chosen.timePref)) throw new HttpError(409, fullMessage(day, chosen.timePref));
     } else if (prefs.length) {
       chosen = chooseDay(prefs, { publicRules: !admin });
       if (!chosen) {
-        throw new HttpError(409, 'Sorry, the dates you picked just filled up. Please choose another date.');
+        throw new HttpError(409, 'Sorry, the dates and times you picked just filled up. Please choose another date or time.');
       }
     }
     const info = run(
@@ -273,8 +306,8 @@ async function updateSignupByToken(token, input) {
   if (s.status === 'cancelled') throw new HttpError(400, 'This registration was cancelled. Please sign up again.');
   if (s.status === 'completed') throw new HttpError(400, 'This winterization is already complete.');
 
+  const name = validateName(input.name ?? s.name);
   const { address, phone } = validateContact({ address: input.address ?? s.address, phone: input.phone ?? s.phone });
-  const name = String(input.name ?? s.name).trim().slice(0, 100);
   const notes = String(input.notes ?? s.notes).trim().slice(0, 1000);
   const smsOptIn = input.smsOptIn === undefined ? s.sms_opt_in : input.smsOptIn ? 1 : 0;
   const day = s.assigned_day_id ? get('SELECT * FROM work_days WHERE id = ?', s.assigned_day_id) : null;
@@ -293,11 +326,12 @@ async function updateSignupByToken(token, input) {
       const keep = prefs.find((p) => p.dayId === s.assigned_day_id);
       if (keep && s.status === 'scheduled') {
         if (keep.timePref !== s.time_pref) {
+          if (!roomFor(day, keep.timePref, { excludeSignupId: s.id })) throw new HttpError(409, fullMessage(day, keep.timePref));
           run(`UPDATE signups SET time_pref = ?, route_order = NULL WHERE id = ?`, keep.timePref, s.id);
         }
       } else {
         const chosen = chooseDay(prefs, { publicRules: true, ignoreSignupId: s.id });
-        if (!chosen) throw new HttpError(409, 'Sorry, none of those dates have room. Please choose another date.');
+        if (!chosen) throw new HttpError(409, 'Sorry, none of those dates and times have room. Please choose another.');
         assign(s.id, chosen.dayId, chosen.timePref);
         moved = true;
       }
@@ -357,7 +391,7 @@ async function adminUpdateSignup(id, input) {
   tx(() => {
     run(
       `UPDATE signups SET name = ?, address = ?, phone = ?, notes = ?, sms_opt_in = ?, tech_notes = ?, updated_at = datetime('now') WHERE id = ?`,
-      String(input.name ?? s.name).trim().slice(0, 100),
+      input.name === undefined ? s.name : validateName(input.name),
       address,
       phone,
       String(input.notes ?? s.notes).trim().slice(0, 1000),
@@ -381,12 +415,18 @@ async function adminUpdateSignup(id, input) {
     if (newDayId !== s.assigned_day_id) {
       if (newDayId) {
         const day = getDay(newDayId);
-        if (!input.allowOverCapacity && !hasRoom(day)) throw new HttpError(409, `${prettyDate(day.date)} is full.`);
+        if (!input.allowOverCapacity && !roomFor(day, newPref, { excludeSignupId: s.id })) {
+          throw new HttpError(409, `${fullMessage(day, newPref)} Tick "Allow over capacity" to add them anyway.`);
+        }
         assign(s.id, newDayId, newPref);
       } else {
         run(`UPDATE signups SET assigned_day_id = NULL, status = 'unscheduled', route_order = NULL WHERE id = ?`, s.id);
       }
     } else if (newPref !== s.time_pref) {
+      const day = s.assigned_day_id ? getDay(s.assigned_day_id) : null;
+      if (day && s.status === 'scheduled' && !input.allowOverCapacity && !roomFor(day, newPref, { excludeSignupId: s.id })) {
+        throw new HttpError(409, `${fullMessage(day, newPref)} Tick "Allow over capacity" to change it anyway.`);
+      }
       run('UPDATE signups SET time_pref = ?, route_order = NULL WHERE id = ?', newPref, s.id);
     }
     const current = getSignup(s.id);
@@ -449,10 +489,27 @@ function pendingStops(dayId) {
 }
 
 function saveOrder(stops) {
-  stops.forEach((s, i) => run('UPDATE signups SET route_order = ? WHERE id = ?', i + 1, s.id));
+  stops.forEach((s, i) =>
+    run('UPDATE signups SET route_order = ?, route_session = ? WHERE id = ?', i + 1, s.route_session ?? null, s.id)
+  );
 }
 
 const asStop = (s) => ({ id: s.id, lat: s.lat, lng: s.lng, pref: s.time_pref, row: s });
+
+/** Plan the pending stops, keeping each half of the day within its limit. */
+function plannedOrder(day, pending, start) {
+  // Stops already finished today used up part of their session's room.
+  const done = all(
+    `SELECT route_session AS session, COUNT(*) AS n FROM signups WHERE assigned_day_id = ? AND status = 'completed' GROUP BY route_session`,
+    day.id
+  );
+  const used = (sess) => done.find((d) => d.session === sess)?.n || 0;
+  return planRoute(pending.map(asStop), {
+    start,
+    amCapacity: Math.max(0, day.am_capacity - used('AM')),
+    pmCapacity: Math.max(0, day.pm_capacity - used('PM')),
+  }).map((st) => ({ ...st.row, route_session: st.session }));
+}
 
 /**
  * Keep route_order current. Until the route is locked (tech started the day, reordered,
@@ -465,7 +522,7 @@ function ensureRoute(dayId) {
   if (!pending.length) return;
   tx(() => {
     if (!day.route_locked) {
-      saveOrder(planRoute(pending.map(asStop), { start: depotPoint() }).map((s) => s.row));
+      saveOrder(plannedOrder(day, pending, depotPoint()));
       return;
     }
     const ordered = pending.filter((s) => s.route_order !== null);
@@ -492,15 +549,22 @@ function ensureRoute(dayId) {
       }
       ordered.splice(bestIdx, 0, n);
     }
+    // A late addition joins the session of the stop it follows (or keeps its own preference).
+    ordered.forEach((st, i) => {
+      if (st.route_order === null) {
+        st.route_session = st.time_pref !== 'ANY' ? st.time_pref : (ordered[i - 1] || ordered[i + 1])?.route_session || 'AM';
+      }
+    });
     saveOrder(ordered);
   });
 }
 
 function reoptimize(dayId, start) {
+  const day = getDay(dayId);
   const pending = pendingStops(dayId);
   const from = start && Number.isFinite(start.lat) ? start : startPoint();
   tx(() => {
-    saveOrder(planRoute(pending.map(asStop), { start: from }).map((s) => s.row));
+    saveOrder(plannedOrder(day, pending, from));
     run('UPDATE work_days SET route_locked = 1 WHERE id = ?', dayId);
   });
 }
@@ -553,6 +617,7 @@ function dayView(dayId) {
     timePref: s.time_pref,
     status: s.status,
     routeOrder: s.route_order,
+    session: s.route_session,
     completedAt: s.completed_at,
     notifiedNext: Boolean(s.notified_next_at),
     notifiedSecond: Boolean(s.notified_second_at),
@@ -659,11 +724,13 @@ async function moveToNextDay(id, { notify = true } = {}) {
     today()
   ).filter((d) => !current || (d.id !== current.id && d.date > current.date));
   const prefs = new Map(prefsFor(s.id).map((p) => [p.dayId, p.timePref]));
-  const withRoom = candidates.filter(hasRoom);
+  // Keep their time of day: a morning person only moves to a day with morning room.
+  const prefOn = (d) => prefs.get(d.id) || s.time_pref;
+  const withRoom = candidates.filter((d) => roomFor(d, prefOn(d)));
   const target = withRoom.find((d) => prefs.has(d.id)) || withRoom[0] || null;
 
   if (target) {
-    assign(s.id, target.id, prefs.get(target.id) || s.time_pref);
+    assign(s.id, target.id, prefOn(target));
   } else {
     run(`UPDATE signups SET status = 'unscheduled', assigned_day_id = NULL, route_order = NULL WHERE id = ?`, s.id);
   }
