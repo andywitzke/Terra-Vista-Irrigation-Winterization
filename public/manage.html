@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Winterization</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+</head>
+<body>
+  <header class="site-header">
+    <div class="inner"><a class="brand" href="/" style="text-decoration:none">💧 <span><span data-neighborhood>Terra Vista</span> Sprinkler Winterization</span></a></div>
+  </header>
+  <main>
+    <div id="load-error" class="hidden" role="alert"></div>
+
+    <div id="status-card" class="card hidden" aria-live="polite">
+      <p class="muted small" style="margin:0">Your registration</p>
+      <p class="status-big" id="status-headline"></p>
+      <p id="status-detail"></p>
+      <p class="muted" id="status-address"></p>
+    </div>
+
+    <form id="edit-form" class="card hidden" novalidate>
+      <h2>Update your details</h2>
+      <div class="grid-2">
+        <div>
+          <label for="name">Name <span class="opt">(optional)</span></label>
+          <input id="name" type="text" autocomplete="name" maxlength="100">
+        </div>
+        <div>
+          <label for="phone">Mobile phone</label>
+          <input id="phone" type="tel" autocomplete="tel" inputmode="tel" required>
+        </div>
+      </div>
+      <label for="address">Street address</label>
+      <input id="address" type="text" autocomplete="street-address" required maxlength="200">
+      <label for="notes">Notes <span class="opt">(gate code, dogs, valve location, etc.)</span></label>
+      <textarea id="notes" maxlength="1000"></textarea>
+
+      <div id="days-block">
+        <label>Days that work for you</label>
+        <div id="days" class="days"></div>
+      </div>
+      <p id="days-locked" class="muted small hidden">Your service day has started, so dates can't be changed here.</p>
+
+      <label class="check" style="margin-top:16px">
+        <input type="checkbox" id="smsOptIn"> <span>Text me updates about my appointment</span>
+      </label>
+
+      <div id="form-msg" class="hidden" role="alert"></div>
+      <div class="row" style="margin-top:16px">
+        <button type="submit" class="grow">Save changes</button>
+        <button type="button" class="btn-ghost-danger" id="cancel-btn">Cancel my sign-up</button>
+      </div>
+    </form>
+
+    <div id="cancelled-card" class="card hidden">
+      <h2>This registration was cancelled</h2>
+      <p><a class="btn" href="/">Sign up again</a></p>
+    </div>
+  </main>
+  <script src="/js/common.js"></script>
+  <script src="/js/manage.js"></script>
+</body>
+</html>

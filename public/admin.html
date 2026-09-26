@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Winterization Admin</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+</head>
+<body>
+  <header class="site-header">
+    <div class="inner">
+      <div class="brand">📋 Winterization Admin</div>
+      <div class="spacer"></div>
+      <a href="/">Sign-up page</a>
+      <a href="/tech.html">Technician view</a>
+      <button class="link" onclick="TV.logout()">Log out</button>
+    </div>
+  </header>
+  <main class="wide">
+    <nav class="tabs" role="tablist">
+      <button data-tab="signups" class="active">Sign-ups</button>
+      <button data-tab="days">Dates</button>
+      <button data-tab="map">Map</button>
+      <button data-tab="texts">Text log</button>
+      <button data-tab="settings">Settings</button>
+    </nav>
+
+    <!-- Sign-ups -->
+    <section data-panel="signups">
+      <div class="card tight">
+        <div class="row">
+          <select id="f-day" style="width:auto"></select>
+          <select id="f-status" style="width:auto">
+            <option value="">All active</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="completed">Completed</option>
+            <option value="unscheduled">Needs a date</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <input type="text" id="f-search" placeholder="Search name, address, phone" class="grow" style="width:auto;min-width:180px">
+          <button id="add-btn">+ Add sign-up</button>
+          <a class="btn btn-secondary" id="export-btn" href="/api/admin/export.csv">⬇ Export CSV</a>
+        </div>
+        <div class="row" style="margin-top:10px" id="stats"></div>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>#</th><th>Time</th><th>Name / Address</th><th>Phone</th><th>Notes</th><th>OK days</th><th>Status</th><th></th></tr></thead>
+            <tbody id="signup-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dates -->
+    <section data-panel="days" class="hidden">
+      <form class="card" id="add-days-form">
+        <h2>Open dates for sign-up</h2>
+        <div class="row" style="align-items:flex-end">
+          <div><label for="d-start">Date</label><input type="date" id="d-start" required></div>
+          <div><label for="d-end">Through <span class="opt">(optional range)</span></label><input type="date" id="d-end"></div>
+          <div style="max-width:120px"><label for="d-cap">Capacity</label><input type="number" id="d-cap" min="1" max="200" value="25"></div>
+          <label class="check" style="margin-bottom:12px"><input type="checkbox" id="d-weekends"> <span>Include weekends</span></label>
+          <button type="submit" style="margin-bottom:2px">Add date(s)</button>
+        </div>
+      </form>
+      <div class="card" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Booked</th><th>Capacity</th><th>Open to public</th><th>Status</th><th></th></tr></thead>
+            <tbody id="day-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Map -->
+    <section data-panel="map" class="hidden">
+      <div class="card tight">
+        <div class="row">
+          <select id="m-day" style="width:auto"></select>
+          <span id="m-summary" class="muted small"></span>
+          <div class="grow"></div>
+          <button class="btn-secondary btn-sm" id="m-fit">Fit map</button>
+        </div>
+      </div>
+      <div class="card">
+        <div id="map" class="map" style="height:520px"></div>
+        <div class="legend">
+          <span><i style="background:var(--am)"></i>Morning</span>
+          <span><i style="background:var(--pm)"></i>Afternoon</span>
+          <span><i style="background:var(--any)"></i>Any time</span>
+          <span><i style="background:var(--done)"></i>Completed</span>
+          <span><i style="background:var(--tech)"></i>Technician</span>
+          <span>🏁 Start point</span>
+        </div>
+      </div>
+      <div class="card" id="m-queue-card">
+        <h2>Today's queue</h2>
+        <div id="m-queue"></div>
+      </div>
+    </section>
+
+    <!-- Texts -->
+    <section data-panel="texts" class="hidden">
+      <div class="card" style="padding:0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>When</th><th>To</th><th>Type</th><th>Message</th><th>Status</th></tr></thead>
+            <tbody id="sms-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section data-panel="settings" class="hidden">
+      <form class="card" id="settings-form">
+        <h2>Route start point</h2>
+        <p class="muted small">Where the technician begins each day (e.g. the neighborhood entrance). Used to plan the route until the
+          technician shares their live location.</p>
+        <label for="s-start">Start address</label>
+        <input type="text" id="s-start" placeholder="Leave blank to let the route start anywhere">
+        <p class="small muted" id="s-start-resolved"></p>
+        <button type="submit">Save</button>
+      </form>
+      <div class="card">
+        <h2>Integrations</h2>
+        <ul id="integrations"></ul>
+        <p class="small muted">These are configured with environment variables on the server. See the README.</p>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="edit-dlg">
+    <form method="dialog" class="dlg-body" id="edit-form" novalidate>
+      <h2 id="edit-title">Edit sign-up</h2>
+      <div class="grid-2">
+        <div><label for="e-name">Name</label><input id="e-name" type="text" maxlength="100"></div>
+        <div><label for="e-phone">Phone</label><input id="e-phone" type="tel" required></div>
+      </div>
+      <label for="e-address">Address</label>
+      <input id="e-address" type="text" required maxlength="200">
+      <p class="small muted" id="e-geo" style="margin:4px 0 0"></p>
+      <label for="e-notes">Neighbor notes</label>
+      <textarea id="e-notes" maxlength="1000"></textarea>
+      <div class="grid-2">
+        <div><label for="e-day">Scheduled day</label><select id="e-day"></select></div>
+        <div><label for="e-pref">Time of day</label>
+          <select id="e-pref"><option value="ANY">Any time</option><option value="AM">Morning</option><option value="PM">Afternoon</option></select></div>
+      </div>
+      <div class="grid-2">
+        <div id="e-status-wrap"><label for="e-status">Status</label>
+          <select id="e-status"><option value="scheduled">Scheduled</option><option value="completed">Completed</option>
+            <option value="unscheduled">Needs a date</option><option value="cancelled">Cancelled</option></select></div>
+        <div><label for="e-technotes">Technician notes</label><input id="e-technotes" type="text" maxlength="1000"></div>
+      </div>
+      <label>Other days that work</label>
+      <div id="e-days" class="days"></div>
+      <label class="check"><input type="checkbox" id="e-sms"> <span>Neighbor agreed to text messages</span></label>
+      <label class="check"><input type="checkbox" id="e-over"> <span>Allow over capacity</span></label>
+      <label class="check"><input type="checkbox" id="e-notify"> <span id="e-notify-label">Text them about this change</span></label>
+      <div id="edit-err" class="hidden" role="alert"></div>
+      <div class="row end" style="margin-top:14px">
+        <button value="cancel" class="btn-secondary" formnovalidate>Cancel</button>
+        <button value="ok" id="edit-save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/map.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

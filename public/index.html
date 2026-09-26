@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sprinkler Winterization Sign-Up</title>
+  <meta name="description" content="Sign up for irrigation system winterization in the Terra Vista neighborhood.">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+</head>
+<body>
+  <header class="site-header">
+    <div class="inner">
+      <div class="brand">💧 <span><span data-neighborhood>Terra Vista</span> Sprinkler Winterization</span></div>
+    </div>
+  </header>
+  <main>
+    <section id="form-section">
+      <div class="card">
+        <h1>Sign up for winterization</h1>
+        <p class="muted">Protect your irrigation system from freezing. Tell us where you live and which days work for you,
+          and we'll text you a confirmation. On service day you'll get a text when you're 2nd in line, when you're next,
+          and when your system is done.</p>
+      </div>
+
+      <form id="signup-form" class="card" novalidate>
+        <div class="grid-2">
+          <div>
+            <label for="name">Name <span class="opt">(optional)</span></label>
+            <input id="name" name="name" type="text" autocomplete="name" maxlength="100">
+          </div>
+          <div>
+            <label for="phone">Mobile phone</label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required placeholder="(555) 123-4567">
+          </div>
+        </div>
+        <label for="address">Street address</label>
+        <input id="address" name="address" type="text" autocomplete="street-address" required placeholder="123 Terra Vista Dr" maxlength="200">
+
+        <label for="notes">Notes <span class="opt">(gate code, dogs, where the valve or controller is, etc.)</span></label>
+        <textarea id="notes" name="notes" maxlength="1000"></textarea>
+
+        <label>Which days work for you?</label>
+        <p class="muted small" style="margin:0">Pick every day you could make work, and whether mornings, afternoons, or any time is best.
+          We'll schedule you on the earliest one with room.</p>
+        <div id="days" class="days"><p class="muted">Loading dates…</p></div>
+
+        <label class="check" style="margin-top:16px">
+          <input type="checkbox" id="smsOptIn" checked>
+          <span>Text me about my appointment (confirmation, "you're next" alerts, and completion). Msg &amp; data rates may apply. Reply STOP to opt out.</span>
+        </label>
+
+        <div id="form-error" class="hidden" role="alert"></div>
+        <div class="row" style="margin-top:16px">
+          <button type="submit" class="btn-lg grow" id="submit">Sign me up</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="success-section" class="hidden">
+      <div class="card">
+        <h1>You're signed up! 🎉</h1>
+        <p class="status-big" id="success-when"></p>
+        <p id="success-address" class="muted"></p>
+        <p id="success-sms"></p>
+        <p>Save this link to view, change, or cancel your registration:</p>
+        <p><a id="success-link" href="#"></a></p>
+        <div class="row"><a class="btn" id="success-manage" href="#">View my registration</a>
+          <button type="button" class="btn-secondary" onclick="location.reload()">Sign up another address</button></div>
+      </div>
+    </section>
+
+    <details class="card tight">
+      <summary><b>Already signed up?</b> Text me my link</summary>
+      <form id="resend-form" class="row" style="margin-top:10px">
+        <input type="tel" id="resend-phone" class="grow" style="width:auto" placeholder="Mobile phone" autocomplete="tel" required>
+        <button type="submit" class="btn-secondary">Send link</button>
+      </form>
+      <div id="resend-msg" class="hidden"></div>
+    </details>
+
+    <p class="small muted" style="text-align:center">Staff: <a href="/tech.html">Technician</a> · <a href="/admin.html">Admin</a></p>
+  </main>
+  <script src="/js/common.js"></script>
+  <script src="/js/signup.js"></script>
+</body>
+</html>

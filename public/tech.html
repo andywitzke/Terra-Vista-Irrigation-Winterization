@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Technician Route</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚚</text></svg>">
+</head>
+<body>
+  <header class="site-header">
+    <div class="inner">
+      <div class="brand">🚚 Technician</div>
+      <div class="spacer"></div>
+      <a href="/admin.html" id="admin-link" class="hidden">Admin</a>
+      <button class="link" onclick="TV.logout()">Log out</button>
+    </div>
+  </header>
+  <main class="wide">
+    <div class="card tight">
+      <div class="row">
+        <label for="day" class="hidden">Day</label>
+        <select id="day" class="grow" style="width:auto;min-width:200px"></select>
+        <span id="day-status"></span>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button id="start-btn">▶ Start day</button>
+        <button id="end-btn" class="btn-secondary">End day…</button>
+        <button id="optimize-btn" class="btn-secondary" title="Re-plan the remaining stops starting from where you are now">↻ Re-plan from here</button>
+        <div class="spacer grow"></div>
+        <label class="check" style="margin:0"><input type="checkbox" id="share-loc"> <span>Share my location <span id="loc-state" class="loc-off small"></span></span></label>
+      </div>
+      <p class="small muted" style="margin:8px 0 0" id="summary"></p>
+    </div>
+
+    <div id="next" class="card next-card hidden"></div>
+
+    <div class="card">
+      <div id="map" class="map"></div>
+      <div class="legend">
+        <span><i style="background:var(--am)"></i>Morning</span>
+        <span><i style="background:var(--pm)"></i>Afternoon</span>
+        <span><i style="background:var(--any)"></i>Any time</span>
+        <span><i style="background:var(--done)"></i>Completed</span>
+        <span><i style="background:var(--tech)"></i>You</span>
+        <button class="link small" id="fit-btn">Fit map</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Queue <span class="muted small" id="queue-count"></span></h2>
+      <div id="queue"></div>
+    </div>
+
+    <details class="card">
+      <summary><b>Completed</b> <span class="muted small" id="done-count"></span></summary>
+      <div id="completed" style="margin-top:8px"></div>
+    </details>
+  </main>
+
+  <dialog id="complete-dlg">
+    <form method="dialog" class="dlg-body" id="complete-form">
+      <h2>Mark complete</h2>
+      <p id="complete-addr" class="muted"></p>
+      <label for="tech-notes">Notes for the homeowner <span class="opt">(optional, included in their text)</span></label>
+      <textarea id="tech-notes" maxlength="1000" placeholder="e.g. Blew out 6 zones. Backflow cover replaced."></textarea>
+      <div class="row end" style="margin-top:14px">
+        <button value="cancel" class="btn-secondary" formnovalidate>Cancel</button>
+        <button value="ok" id="complete-ok">✓ Complete</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="end-dlg">
+    <form method="dialog" class="dlg-body">
+      <h2>End the day</h2>
+      <p id="end-summary"></p>
+      <label class="check"><input type="checkbox" id="end-rollover" checked>
+        <span>Move unfinished stops to their next available day and text them</span></label>
+      <div class="row end" style="margin-top:14px">
+        <button value="cancel" class="btn-secondary" formnovalidate>Cancel</button>
+        <button value="ok">End day</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/map.js"></script>
+  <script src="/js/tech.js"></script>
+</body>
+</html>

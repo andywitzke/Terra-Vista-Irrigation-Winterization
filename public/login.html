@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Staff Login</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="site-header"><div class="inner"><a class="brand" href="/" style="text-decoration:none">💧 Sprinkler Winterization</a></div></header>
+  <main style="max-width:420px">
+    <form id="login" class="card">
+      <h1 id="title">Staff login</h1>
+      <label for="role">I am the…</label>
+      <select id="role">
+        <option value="tech">Technician</option>
+        <option value="admin">Administrator</option>
+      </select>
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required autofocus>
+      <div id="err" class="hidden" role="alert"></div>
+      <button type="submit" style="width:100%;margin-top:16px">Log in</button>
+    </form>
+  </main>
+  <script src="/js/common.js"></script>
+  <script>
+    const qs = new URLSearchParams(location.search);
+    const roleSel = document.getElementById('role');
+    if (qs.get('role') === 'admin') roleSel.value = 'admin';
+    document.getElementById('login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const { role } = await TV.api('/api/login', { method: 'POST', body: { role: roleSel.value, password: document.getElementById('password').value } });
+        const next = qs.get('next');
+        location.href = next && next.startsWith('/') && !next.startsWith('//') ? next : role === 'admin' ? '/admin.html' : '/tech.html';
+      } catch (err) {
+        TV.showAlert(document.getElementById('err'), err.message);
+      }
+    });
+  </script>
+</body>
+</html>
