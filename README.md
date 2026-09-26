@@ -44,7 +44,7 @@ Set these as environment variables or in `.env` (see `.env.example`):
 | `BASE_URL` | Public URL of the site, used for links in texts (e.g. `https://winterize.example.com`) |
 | `ADMIN_PASSWORD`, `TECH_PASSWORD` | Staff passwords. **Change the defaults** (`admin` / `tech`). |
 | `SESSION_SECRET` | Long random string used to sign login cookies. Without it, staff are logged out on every restart. |
-| `ADDRESS_SUFFIX` | Added to addresses before geocoding, e.g. `Rocklin, CA 95765`, so "123 Main St" lands in the neighborhood |
+| `ADDRESS_SUFFIX` | Added to addresses before geocoding, e.g. `Plymouth, MN 55446`, so "123 Main St" lands in the neighborhood |
 | `GOOGLE_MAPS_API_KEY` | Google Maps Platform key with **Maps JavaScript API** and **Geocoding API** enabled |
 | `GOOGLE_MAPS_SERVER_KEY` | Optional separate key for server-side geocoding (useful if the browser key is HTTP-referrer restricted) |
 | `GOOGLE_MAPS_MAP_ID` | Optional Map ID for Advanced Markers (`DEMO_MAP_ID` is used otherwise) |
@@ -104,7 +104,7 @@ The repo includes `railway.json`, so Railway builds from the `Dockerfile`, runs 
    - `SESSION_SECRET`: any long random string, so staff stay logged in across deploys.
 
    Recommended:
-   - `ADDRESS_SUFFIX`, e.g. `Rocklin, CA 95765`
+   - `ADDRESS_SUFFIX`, e.g. `Plymouth, MN 55446`
    - `GOOGLE_MAPS_API_KEY` (and optionally `GOOGLE_MAPS_SERVER_KEY`, `GOOGLE_MAPS_MAP_ID`)
    - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`
 4. **Get a web address.** Service → **Settings → Networking → Generate Domain** (or add your own domain). Links in texts

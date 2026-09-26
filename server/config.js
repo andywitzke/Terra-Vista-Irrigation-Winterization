@@ -20,7 +20,7 @@ const config = {
       ? path.join(env.RAILWAY_VOLUME_MOUNT_PATH, 'winterization.db')
       : path.join(__dirname, '..', 'data', 'winterization.db')),
   onRailwayWithoutVolume: Boolean(env.RAILWAY_ENVIRONMENT && !env.RAILWAY_VOLUME_MOUNT_PATH && !env.DB_PATH),
-  timeZone: env.TZ_NAME || 'America/Los_Angeles',
+  timeZone: env.TZ_NAME || 'America/Chicago',
   neighborhoodName: env.NEIGHBORHOOD_NAME || 'Terra Vista',
   // Appended to addresses before geocoding so "123 Main St" resolves inside the neighborhood.
   addressSuffix: env.ADDRESS_SUFFIX || '',
