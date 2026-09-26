@@ -18,7 +18,7 @@ if (usingDefaultPasswords && (process.env.RAILWAY_ENVIRONMENT || process.env.NOD
   process.exit(1);
 }
 
-app.listen(config.port, () => {
+const server = app.listen(config.port, () => {
   console.log(`${config.neighborhoodName} winterization running at ${config.baseUrl}`);
   if (usingDefaultPasswords) {
     console.warn('WARNING: using default passwords. Set ADMIN_PASSWORD and TECH_PASSWORD.');
@@ -26,7 +26,22 @@ app.listen(config.port, () => {
   if (config.onRailwayWithoutVolume) {
     console.warn('WARNING: no Railway volume attached; sign-ups will be lost on every redeploy. Attach a volume to this service.');
   }
-  if (config.sessionSecretIsRandom) console.warn('NOTE: SESSION_SECRET not set; staff logins reset when the server restarts.');
-  if (!config.smsEnabled) console.warn('NOTE: Twilio not configured; text messages are logged, not sent.');
-  if (!config.googleMapsBrowserKey) console.warn('NOTE: GOOGLE_MAPS_API_KEY not set; maps and geocoding are disabled.');
+  // Informational notes go to stdout so hosts don't flag them as errors.
+  if (config.sessionSecretIsRandom) console.log('NOTE: SESSION_SECRET not set; staff logins reset when the server restarts.');
+  if (!config.smsEnabled) console.log('NOTE: Twilio not configured; text messages are logged, not sent.');
+  if (!config.googleMapsBrowserKey) console.log('NOTE: GOOGLE_MAPS_API_KEY not set; maps and geocoding are disabled.');
 });
+
+// Hosts stop the old copy with SIGTERM during a redeploy: finish open requests, close the database, exit cleanly.
+for (const signal of ['SIGTERM', 'SIGINT']) {
+  process.on(signal, () => {
+    console.log(`Received ${signal}, shutting down.`);
+    server.close(() => {
+      try {
+        require('./db').db.close();
+      } catch {}
+      process.exit(0);
+    });
+    setTimeout(() => process.exit(0), 5000).unref();
+  });
+}

@@ -8,4 +8,5 @@ ENV NODE_ENV=production PORT=3000
 # The database lives in /app/data by default; mount a volume there
 # (Railway: attach a volume and the app finds it via RAILWAY_VOLUME_MOUNT_PATH).
 EXPOSE 3000
-CMD ["npm", "start"]
+# Run node directly (not through npm) so Railway's stop signal reaches the app and it exits cleanly.
+CMD ["node", "--disable-warning=ExperimentalWarning", "server/index.js"]
