@@ -45,6 +45,8 @@ const id = (req) => {
 
 // ------------------------------------------------------------------ public
 
+app.get('/healthz', (req, res) => res.json({ ok: true }));
+
 app.get('/api/config', (req, res) =>
   res.json({
     neighborhoodName: config.neighborhoodName,

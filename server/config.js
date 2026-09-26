@@ -9,8 +9,17 @@ const env = process.env;
 
 const config = {
   port: Number(env.PORT) || 3000,
-  baseUrl: (env.BASE_URL || `http://localhost:${Number(env.PORT) || 3000}`).replace(/\/$/, ''),
-  dbPath: env.DB_PATH || path.join(__dirname, '..', 'data', 'winterization.db'),
+  // On Railway, fall back to the service's public domain and attached volume.
+  baseUrl: (
+    env.BASE_URL ||
+    (env.RAILWAY_PUBLIC_DOMAIN ? `https://${env.RAILWAY_PUBLIC_DOMAIN}` : `http://localhost:${Number(env.PORT) || 3000}`)
+  ).replace(/\/$/, ''),
+  dbPath:
+    env.DB_PATH ||
+    (env.RAILWAY_VOLUME_MOUNT_PATH
+      ? path.join(env.RAILWAY_VOLUME_MOUNT_PATH, 'winterization.db')
+      : path.join(__dirname, '..', 'data', 'winterization.db')),
+  onRailwayWithoutVolume: Boolean(env.RAILWAY_ENVIRONMENT && !env.RAILWAY_VOLUME_MOUNT_PATH && !env.DB_PATH),
   timeZone: env.TZ_NAME || 'America/Los_Angeles',
   neighborhoodName: env.NEIGHBORHOOD_NAME || 'Terra Vista',
   // Appended to addresses before geocoding so "123 Main St" resolves inside the neighborhood.

@@ -90,20 +90,41 @@ handles STOP/HELP replies automatically. Every attempt, successful or not, appea
   15 seconds while the page is open and shows on both maps. Phones may pause this when the screen locks or the browser is
   in the background.
 
-## Deploying
+## Deploying on Railway
 
-Any host that runs Node 22 and has a **persistent disk** for the SQLite file works (Render, Railway, Fly.io, a small VPS).
-Put `DB_PATH` on the persistent volume, set `BASE_URL` to the public HTTPS URL, and set the passwords and `SESSION_SECRET`.
-Browsers only allow location sharing over **HTTPS** (or localhost).
+The repo includes `railway.json`, so Railway builds from the `Dockerfile`, runs one instance, and health-checks `/healthz`.
 
-With Docker:
+1. **Create the service.** In [Railway](https://railway.com): **New Project → Deploy from GitHub repo**, then pick
+   `Terra-Vista-Irrigation-Winterization`. The first deploy will fail until step 3 is done. That's expected.
+2. **Attach a volume** (this keeps sign-ups across redeploys). Right-click the service (or use the command palette)
+   → **Attach Volume**, and set the mount path to `/data`. The app finds it automatically through Railway's
+   `RAILWAY_VOLUME_MOUNT_PATH`, so you don't need to set `DB_PATH`.
+3. **Add variables** (service → **Variables**). Required:
+   - `ADMIN_PASSWORD`, `TECH_PASSWORD`. The app refuses to start on Railway with the defaults.
+   - `SESSION_SECRET`: any long random string, so staff stay logged in across deploys.
+
+   Recommended:
+   - `ADDRESS_SUFFIX`, e.g. `Rocklin, CA 95765`
+   - `GOOGLE_MAPS_API_KEY` (and optionally `GOOGLE_MAPS_SERVER_KEY`, `GOOGLE_MAPS_MAP_ID`)
+   - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`
+4. **Get a web address.** Service → **Settings → Networking → Generate Domain** (or add your own domain). Links in texts
+   use this domain automatically. Set `BASE_URL` only if you use a custom domain.
+5. **Point Google at it.** If your Maps key is restricted to HTTP referrers, add `https://<your-domain>/*`.
+
+Pushing to the connected branch redeploys automatically. To back up, use Admin → Export CSV, or download the database
+file from the volume.
+
+Keep it at **one replica**. The app uses a single SQLite file, and more than one instance would split the data.
+
+### Other hosts / Docker
+
+Any host that runs Node 22.13+ with a persistent disk works. Put `DB_PATH` on that disk, set `BASE_URL` to the public
+HTTPS URL, and set the passwords and `SESSION_SECRET`. Browsers only allow location sharing over **HTTPS** (or localhost).
 
 ```bash
 docker build -t winterization .
-docker run -p 3000:3000 -v winterization-data:/data --env-file .env winterization
+docker run -p 3000:3000 -v winterization-data:/app/data --env-file .env winterization
 ```
-
-Back up the database by copying the file at `DB_PATH` (or use Admin → Export CSV).
 
 ## Project layout
 
