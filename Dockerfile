@@ -4,6 +4,7 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 COPY server ./server
 COPY public ./public
+COPY docs/Terra-Vista-Winterization-User-Manual.pdf ./docs/
 ENV NODE_ENV=production PORT=3000
 # The database lives in /app/data by default; mount a volume there
 # (Railway: attach a volume and the app finds it via RAILWAY_VOLUME_MOUNT_PATH).

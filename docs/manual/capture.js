@@ -170,6 +170,8 @@ async function run() {
   const ids = [];
   for (const [i, [name, address, pref, day, , notes]] of PEOPLE.entries()) {
     const s = await post('/api/signups', {
+      smsOptIn: true,
+      acceptTerms: true,
       name,
       address,
       phone: `763555${String(100 + i).padStart(4, '0')}`,
@@ -208,9 +210,20 @@ async function run() {
   await p.click('.day:nth-child(2) .seg label:nth-child(1) span');
   await p.click('.day:nth-child(3) .day-head');
   await p.click('.day:nth-child(3) .seg label:nth-child(2) span');
+  await p.check('#smsOptIn');
+  await p.check('#acceptTerms');
   const daysEl = await p.$('#signup-form');
   await daysEl.evaluate((el) => el.querySelector('#days').scrollIntoView());
   await shot(await p.$('#signup-form'), 'signup-form');
+  // Close-up of the two consent checkboxes and the submit button.
+  await p.evaluate(() => document.getElementById('smsOptIn').scrollIntoView({ block: 'start' }));
+  await sleep(200);
+  const clip = await p.evaluate(() => {
+    const a = document.getElementById('smsOptIn').closest('label').getBoundingClientRect();
+    const b = document.getElementById('submit').getBoundingClientRect();
+    return { x: 0, y: Math.max(0, a.top - 12), width: window.innerWidth, height: b.bottom - a.top + 24 };
+  });
+  await shot(p, 'signup-consent', { clip });
   await p.click('#submit');
   await p.waitForSelector('#success-section:not(.hidden)');
   await shot(p, 'signup-success');
@@ -290,6 +303,8 @@ async function run() {
   await p.goto(secondToken.replace('https://your-site.up.railway.app', B));
   await p.waitForSelector('#status-card:not(.hidden)');
   await shot(await p.$('#status-card'), 'manage-second-in-line');
+  await sleep(600);
+  await shot(await p.$('#progress-card'), 'manage-progress');
 
   // ---- admin during the day
   await a.goto(B + '/admin.html#map');

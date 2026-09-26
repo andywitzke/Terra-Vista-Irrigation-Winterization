@@ -144,6 +144,20 @@ test('full season flow', async (t) => {
 
     const status = await req('GET', `/api/signups/${tokens.find(Boolean) && all('SELECT token FROM signups WHERE id = ?', second.id)[0].token}`);
     assert.strictEqual(status.data.queuePosition, 1);
+    // Progress view: counts and the neighbor's own details only.
+    assert.deepStrictEqual(
+      { completed: status.data.progress.completed, remaining: status.data.progress.remaining, stopsBefore: status.data.progress.stopsBefore },
+      { completed: 1, remaining: 2, stopsBefore: 0 }
+    );
+    const others = all('SELECT address, name, phone FROM signups WHERE id != ?', second.id);
+    const payload = JSON.stringify(status.data);
+    for (const o of others) {
+      assert.ok(!payload.includes(o.address) && !payload.includes(o.phone), `no other neighbor's details leak (${o.address})`);
+    }
+    // Service-day texts link to the neighbor's own page.
+    for (const kind of ['next', 'second']) {
+      assert.ok(all('SELECT body FROM sms_log WHERE kind = ?', kind).every((m) => /Track progress: .*manage\.html\?t=/.test(m.body)));
+    }
   });
 
   await t.test('ending the day rolls unfinished stops to the next day', async () => {
@@ -262,6 +276,12 @@ test('morning and afternoon limits are enforced separately', async (t) => {
     const d = r.data.find((x) => x.id === day.id);
     assert.deepStrictEqual([d.am_capacity, d.pm_capacity, d.capacity, d.full], [3, 2, 5, false]);
   });
+});
+
+test('user manual is served at /help', async () => {
+  const res = await fetch(`${base}/help`);
+  assert.strictEqual(res.status, 200);
+  assert.match(res.headers.get('content-type'), /application\/pdf/);
 });
 
 test('tech location is stored', async () => {

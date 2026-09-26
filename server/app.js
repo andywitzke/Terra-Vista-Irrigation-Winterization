@@ -377,6 +377,13 @@ app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
 
 // ------------------------------------------------------------------ static pages
 
+const MANUAL = path.join(__dirname, '..', 'docs', 'Terra-Vista-Winterization-User-Manual.pdf');
+app.get(['/help', '/manual.pdf'], (req, res) =>
+  res.sendFile(MANUAL, { headers: { 'Content-Disposition': 'inline; filename="Terra-Vista-Winterization-User-Manual.pdf"' } }, (err) => {
+    if (err && !res.headersSent) res.status(404).send('The user manual is not available.');
+  })
+);
+
 app.use(express.static(path.join(__dirname, '..', 'public'), { extensions: ['html'] }));
 
 // eslint-disable-next-line no-unused-vars

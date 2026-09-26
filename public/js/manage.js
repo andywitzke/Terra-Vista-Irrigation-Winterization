@@ -8,6 +8,36 @@
   const cfg = await api('/api/config').catch(() => ({}));
   if (cfg.neighborhoodName) document.querySelectorAll('[data-neighborhood]').forEach((el) => (el.textContent = cfg.neighborhoodName));
 
+  let progressMap = null;
+
+  async function renderProgress(s) {
+    const p = s.progress;
+    const card = $('progress-card');
+    if (!p) return card.classList.add('hidden');
+    card.classList.remove('hidden');
+    const stat = (label, n) => `<span class="stat"><span class="small muted">${label}</span><b>${n}</b></span>`;
+    const stats = [stat('Houses done', p.completed), stat('Still to go', p.remaining)];
+    if (p.stopsBefore !== null) stats.push(stat('Stops before yours', p.stopsBefore));
+    $('progress-stats').innerHTML = stats.join('');
+    $('progress-card').querySelector('h2').textContent = p.dayStatus === 'done' ? 'Service day finished' : "Today's progress";
+    $('progress-note').textContent =
+      p.dayStatus === 'done'
+        ? 'The technician has finished for the day.'
+        : p.techLocation
+          ? `Technician location updated ${TV.timeAgo(p.techLocation.updatedAt)}. This page refreshes every 30 seconds.`
+          : "The technician's location isn't available right now. This page refreshes every 30 seconds.";
+    const showMap = p.home || p.techLocation;
+    $('progress-map').classList.toggle('hidden', !showMap);
+    $('progress-legend').classList.toggle('hidden', !showMap);
+    if (!showMap) return;
+    if (!progressMap) progressMap = await TVMap.createMap($('progress-map'), cfg);
+    const home = p.home && s.status !== 'completed'
+      ? [{ ...p.home, address: s.address, timePref: s.timePref, label: '🏠', markerClass: 'ANY', title: 'Your house' }]
+      : [];
+    const done = p.home && s.status === 'completed' ? [{ ...p.home, address: s.address, timePref: s.timePref, completedAt: s.completedAt }] : [];
+    progressMap.update({ queue: home, completed: done, techLocation: p.techLocation });
+  }
+
   if (!token) return showAlert($('load-error'), 'This link is missing its code. Use the link from your text message.');
 
   function renderStatus(s) {
@@ -70,6 +100,7 @@
       return;
     }
     renderStatus(current);
+    await renderProgress(current);
     if (withForm) await renderForm(current);
     clearTimeout(refreshTimer);
     if (current.assignedDay?.status === 'in_progress' && current.status === 'scheduled') {
@@ -96,6 +127,7 @@
       current = await api(`/api/signups/${encodeURIComponent(token)}`, { method: 'PUT', body });
       showAlert($('form-msg'), 'Saved!', 'ok');
       renderStatus(current);
+      await renderProgress(current);
       await renderForm(current);
     } catch (err) {
       showAlert($('form-msg'), err.message);

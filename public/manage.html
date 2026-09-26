@@ -22,6 +22,17 @@
       <p class="muted" id="status-address"></p>
     </div>
 
+    <div id="progress-card" class="card hidden" aria-live="polite">
+      <h2>Today's progress</h2>
+      <div class="row" id="progress-stats"></div>
+      <div id="progress-map" class="map" style="height:320px; margin-top:12px"></div>
+      <div class="legend" id="progress-legend">
+        <span><i style="background:var(--any)"></i>Your house</span>
+        <span><i style="background:var(--tech)"></i>Technician</span>
+      </div>
+      <p class="small muted" id="progress-note" style="margin:8px 0 0"></p>
+    </div>
+
     <form id="edit-form" class="card hidden" novalidate>
       <h2>Update your details</h2>
       <div class="grid-2">
@@ -64,9 +75,10 @@
       <p><a class="btn" href="/">Sign up again</a></p>
     </div>
     <p class="small muted" style="text-align:center"><a href="/terms.html">Terms &amp; Conditions</a> ·
-      <a href="/privacy.html">Privacy Policy</a> · Questions? Call or text Andy Witzke at <a href="tel:+16122510478">612-251-0478</a></p>
+      <a href="/privacy.html">Privacy Policy</a> · <a href="/help" target="_blank">Help</a> · Questions? Call or text Andy Witzke at <a href="tel:+16122510478">612-251-0478</a></p>
   </main>
   <script src="/js/common.js"></script>
+  <script src="/js/map.js"></script>
   <script src="/js/manage.js"></script>
 </body>
 </html>

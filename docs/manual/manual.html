@@ -84,6 +84,8 @@
   .compact h2 { margin-top: 13pt; }
   .compact table td, .compact table th { padding: 3.5pt 6pt; }
   .compact .flow { margin: 5pt 0 8pt; }
+  .compact .flow div { padding: 4pt 6pt; font-size: 8.5pt; }
+  .compact h1 { margin-bottom: 3pt; }
 </style>
 </head>
 <body>
@@ -124,15 +126,16 @@
   <p>The website lets Terra Vista neighbors sign up to have their irrigation system winterized. It schedules everyone
     onto service days, plans the technician's route, and texts neighbors as the technician gets close.</p>
 
-  <h2>The four pages</h2>
+  <h2>The pages</h2>
   <table>
     <tr><th style="width:26%">Page</th><th style="width:20%">Who uses it</th><th>What it's for</th></tr>
     <tr><td>Main page <code>/</code></td><td>Neighbors</td><td>The sign-up form. This is the address to share with the neighborhood.</td></tr>
     <tr><td>Private registration link</td><td>Each neighbor</td><td>Sent to them by text. Shows their date and place in line, and lets them change or cancel.</td></tr>
-    <tr><td><code>/admin.html</code></td><td>Administrator</td><td>Open dates, manage every sign-up, see the map, export a spreadsheet, check texts.</td></tr>
-    <tr><td><code>/tech.html</code></td><td>Technician</td><td>The day's route, "up next", mark houses complete, share location.</td></tr>
+    <tr><td><code>/admin.html</code></td><td>Administrator (password)</td><td>Open dates, manage every sign-up, see the map, export a spreadsheet, check texts.</td></tr>
+    <tr><td><code>/tech.html</code></td><td>Technician (password)</td><td>The day's route, "up next", mark houses complete, share location.</td></tr>
+    <tr><td><code>/help</code></td><td>Everyone</td><td>This manual. Every page has a <b>Help</b> link to it.</td></tr>
+    <tr><td><code>/terms.html</code>, <code>/privacy.html</code></td><td>Everyone</td><td>Terms &amp; Conditions and Privacy Policy, linked from the sign-up form.</td></tr>
   </table>
-  <p style="font-size:9.8pt">The staff pages are password protected. The administrator password also opens the technician page.</p>
 
   <h2>How a season works</h2>
   <div class="flow">
@@ -172,7 +175,8 @@
         <li>Add any <b>notes</b> for the technician, for example gate codes, pets, or where the valve or controller is.</li>
         <li>Under <b>Which days work for you?</b>, tick every date you could make work.</li>
         <li>For each ticked date, choose <b>Morning</b>, <b>Afternoon</b> or <b>Any time</b>.</li>
-        <li>Leave <b>Text me about my appointment</b> ticked to get text updates.</li>
+        <li>To get text updates, tick <b>Yes, text me about my winterization appointment</b>. Texts are optional: you can sign up without them.</li>
+        <li>Tick <b>I agree to the Terms &amp; Conditions and Privacy Policy</b>. This one is required.</li>
         <li>Tap <b class="ui">Sign me up</b>.</li>
       </ol>
     </div>
@@ -194,6 +198,19 @@
         picked fill up while you're signing up, the list refreshes. Pick another date and try again.</p>
       <p>If you're already signed up for that address, the site texts you your private link again instead of creating a
         second booking.</p>
+    </div>
+  </div>
+
+  <div class="side">
+    <figure class="phone"><img src="img/signup-consent.png" alt="Consent checkboxes"><figcaption>The two checkboxes at the bottom of the form</figcaption></figure>
+    <div class="text">
+      <h3>The two checkboxes</h3>
+      <p><b>Text messages (optional).</b> Both boxes start unticked. The first says exactly what you'll get: a sign-up
+        confirmation, schedule changes, "2nd in line" and "you're next" alerts, and a completion notice. That's about 4
+        texts per appointment, up to 6 if it changes. Message and data rates may apply. Reply <b>HELP</b> for help or
+        <b>STOP</b> to opt out at any time.</p>
+      <p><b>Terms and Privacy (required).</b> Tap the links to read the Terms &amp; Conditions and Privacy Policy. In
+        short, your information is only used to run this program, and it's deleted after the season.</p>
     </div>
   </div>
 
@@ -237,8 +254,22 @@
         <li><b>You're next</b>: the technician is on the way. Please unlock gates and make sure the valve is reachable.</li>
         <li><b>Done</b>: your system has been winterized, with any notes from the technician.</li>
       </ol>
-      <p>Your private link also shows your place in line and refreshes every 30 seconds.</p>
+      <p>The "2nd in line" and "you're next" texts include your private link, so you can follow along.</p>
       <p>If the technician can't get to you that day, you'll get a text with your new date.</p>
+    </div>
+  </div>
+  <div class="side">
+    <figure class="phone small"><img src="img/manage-progress.png" alt="Today's progress"><figcaption>Today's progress on your private page</figcaption></figure>
+    <div class="text">
+      <h3>Following the technician</h3>
+      <p>On your service day your private page shows <b>Today's progress</b>:</p>
+      <ul>
+        <li>how many houses are done, how many are still to go, and how many stops are before yours,</li>
+        <li>a map with your house (🏠) and the technician's current location, when they're sharing it,</li>
+        <li>when the technician's location was last updated.</li>
+      </ul>
+      <p>It refreshes every 30 seconds. To protect everyone's privacy, it never shows other neighbors' names or
+        addresses, only counts.</p>
     </div>
   </div>
 </section>
@@ -319,7 +350,11 @@
         <li><b>Technician notes</b> appear in their "done" text.</li>
         <li><b>Other days that work</b> are the backup dates used for moves.</li>
         <li><b>Allow over capacity</b> lets you book someone even when that half of the day is full.</li>
-        <li><b>Send confirmation text</b> (new sign-ups) or <b>Text them if their date changes</b> (edits).</li>
+        <li><b>Neighbor opted in to texts on the sign-up form</b> starts unticked. Only tick it if the neighbor ticked the
+          text box on the sign-up form themselves. For someone who called or emailed, add them with it unticked and send
+          them the website so they can opt in.</li>
+        <li><b>Send confirmation text</b> (new sign-ups) or <b>Text them if their date changes</b> (edits). These only send
+          if the neighbor has opted in.</li>
       </ul>
       <p>A name, a 10-digit phone number and an address are required.</p>
     </div>
@@ -470,16 +505,16 @@
 <section class="chapter">
   <div class="chapter-num">Chapter 6</div>
   <h1>Text messages</h1>
-  <p>Texts go only to neighbors who ticked <b>Text me about my appointment</b>. Every text is listed on the admin
-    <b>Text log</b> tab. Each one starts with <i>"Terra Vista Winterization:"</i>. Cancelling or deleting a sign-up
+  <p>Texts go only to neighbors who ticked <b>Yes, text me about my winterization appointment</b> on the sign-up form.
+    Every text is listed on the admin <b>Text log</b> tab. Each one starts with <i>"Terra Vista Winterization (Andy Witzke):"</i>. Cancelling or deleting a sign-up
     from the admin page doesn't send a text.</p>
   <table>
     <tr><th style="width:22%">When</th><th>What it says (example)</th></tr>
-    <tr><td>Right after signing up</td><td>You're signed up for Mon, Oct 5 (morning) at 16410 58th Ave N. We'll text you when you're 2nd in line, next, and when it's done. Edit or cancel: <i>[private link]</i> Reply STOP to opt out.</td></tr>
+    <tr><td>Right after signing up</td><td>You're signed up for Mon, Oct 5 (morning) at 16410 58th Ave N. We'll text you when you're 2nd in line, next, and when it's done: about 4 msgs per appointment, up to 6 if it changes. Msg &amp; data rates may apply. Reply HELP for help, STOP to opt out. Manage: <i>[private link]</i></td></tr>
     <tr><td>Their booking moves to a new date</td><td>Your winterization at 16410 58th Ave N has been moved to Tue, Oct 6 (any time). Details or changes: <i>[private link]</i></td></tr>
     <tr><td>Moved, but no date has room</td><td>We weren't able to get to 16410 58th Ave N on Mon, Oct 5. We'll text you as soon as it's rescheduled. Sorry for the delay!</td></tr>
-    <tr><td>2nd in line (service day)</td><td>You're 2nd in line! Our technician will be at 16410 58th Ave N after one more stop.</td></tr>
-    <tr><td>Next (service day)</td><td>You're next! Our technician is heading to 16410 58th Ave N now. Please make sure gates are unlocked and the backflow/shutoff valve is accessible.</td></tr>
+    <tr><td>2nd in line (service day)</td><td>You're 2nd in line! Our technician will be at 16410 58th Ave N after one more stop. Track progress: <i>[private link]</i></td></tr>
+    <tr><td>Next (service day)</td><td>You're next! Our technician is heading to 16410 58th Ave N now. Please make sure gates are unlocked and the backflow/shutoff valve is accessible. Track progress: <i>[private link]</i></td></tr>
     <tr><td>Done</td><td>Your irrigation system at 16410 58th Ave N has been winterized. Technician notes: Blew out 6 zones. Thank you!</td></tr>
     <tr><td>They cancel from their private link</td><td>Your sign-up for 16410 58th Ave N has been cancelled. Sign up again anytime at <i>[site address]</i></td></tr>
     <tr><td>They use "Text me my link"</td><td>Manage your sign-up for 16410 58th Ave N: <i>[private link]</i></td></tr>
@@ -528,7 +563,7 @@
 </section>
 
 <!-- ============================================================ appendix -->
-<section class="chapter">
+<section class="chapter compact">
   <div class="chapter-num">Appendix</div>
   <h1>Hosting settings</h1>
   <p>For whoever manages the site on Railway. Settings are entered in Railway under the service's <b>Variables</b> tab.
@@ -541,7 +576,8 @@
     <tr><td><code>ADDRESS_SUFFIX</code></td><td><code>Plymouth, MN 55446</code>. Added to addresses so Google finds them in the neighborhood.</td></tr>
     <tr><td><code>TZ_NAME</code></td><td><code>America/Chicago</code> (the default). Used for "today".</td></tr>
     <tr><td><code>GOOGLE_MAPS_API_KEY</code></td><td>Google key with the Maps JavaScript API and Geocoding API turned on.</td></tr>
-    <tr><td><code>TWILIO_ACCOUNT_SID</code>, <code>TWILIO_AUTH_TOKEN</code>, <code>TWILIO_FROM_NUMBER</code></td><td>Twilio account details and the number texts come from. Until these are set, texts show as "simulated".</td></tr>
+    <tr><td><code>TWILIO_ACCOUNT_SID</code> (starts AC), <code>TWILIO_AUTH_TOKEN</code>, <code>TWILIO_MESSAGING_SERVICE_SID</code> (starts MG)</td><td>Twilio account details and the Messaging Service your registered campaign is attached to. Until these are set, texts show as "simulated".</td></tr>
+    <tr><td><code>ORGANIZER_NAME</code></td><td>Name shown in every text: <code>Andy Witzke</code> (the default).</td></tr>
     <tr><td><code>DEFAULT_AM_CAPACITY</code>, <code>DEFAULT_PM_CAPACITY</code></td><td>Limits pre-filled for new dates (10 and 15).</td></tr>
     <tr><td><code>BASE_URL</code></td><td>Only needed with a custom domain. Otherwise the Railway address is used automatically.</td></tr>
   </table>
@@ -555,7 +591,8 @@
   <p>In Google Cloud Console, limit the key to the site's address (<code>https://your-site.up.railway.app/*</code>) so others can't use it.</p>
   <h3>Twilio</h3>
   <p>US texting from a website requires Twilio's business registration (A2P 10DLC) or a verified toll-free number. Until
-    it's approved, texts may not be delivered.</p>
+    it's approved, texts may not be delivered. In the Messaging Service's <b>Opt-Out Management</b>, set the STOP, HELP and
+    START replies to match the registration. The website doesn't read incoming texts, so Twilio answers those keywords.</p>
 </section>
 
 </body>

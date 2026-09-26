@@ -131,11 +131,24 @@ function manageLink(token) {
 function describeSignup(s) {
   const day = s.assigned_day_id ? get('SELECT * FROM work_days WHERE id = ?', s.assigned_day_id) : null;
   let queuePosition = null;
-  if (day && day.status === 'in_progress' && s.status === 'scheduled') {
-    ensureRoute(day.id);
+  let progress = null;
+  if (day && day.status !== 'scheduled') {
+    // Service-day progress for this neighbor only: counts, their own house, and the technician.
+    // Other neighbors' names and addresses are never included.
+    if (day.status === 'in_progress') ensureRoute(day.id);
     const queue = pendingStops(day.id);
     const idx = queue.findIndex((q) => q.id === s.id);
-    if (idx >= 0) queuePosition = idx + 1;
+    if (day.status === 'in_progress' && s.status === 'scheduled' && idx >= 0) queuePosition = idx + 1;
+    const loc = techLocation();
+    const locFresh = loc && Date.now() - Date.parse(loc.updatedAt) < 30 * 60 * 1000;
+    progress = {
+      dayStatus: day.status,
+      completed: get(`SELECT COUNT(*) AS n FROM signups WHERE assigned_day_id = ? AND status = 'completed'`, day.id).n,
+      remaining: queue.length,
+      stopsBefore: queuePosition ? queuePosition - 1 : null,
+      home: Number.isFinite(s.lat) ? { lat: s.lat, lng: s.lng } : null,
+      techLocation: day.status === 'in_progress' && locFresh ? { lat: loc.lat, lng: loc.lng, updatedAt: loc.updatedAt } : null,
+    };
   }
   return {
     id: s.id,
@@ -150,6 +163,7 @@ function describeSignup(s) {
     timePref: s.time_pref,
     assignedDay: day ? { id: day.id, date: day.date, status: day.status } : null,
     queuePosition,
+    progress,
     completedAt: s.completed_at,
     techNotes: s.status === 'completed' ? s.tech_notes : '',
     prefs: prefsFor(s.id),
@@ -650,7 +664,7 @@ async function processQueue(dayId) {
       first,
       'next',
       `${brand()}: You're next! Our technician is heading to ${first.address} now. ` +
-        `Please make sure gates are unlocked and the backflow/shutoff valve is accessible.`
+        `Please make sure gates are unlocked and the backflow/shutoff valve is accessible. Track progress: ${manageLink(first.token)}`
     );
   }
   if (second && !second.notified_second_at && !second.notified_next_at) {
@@ -658,7 +672,8 @@ async function processQueue(dayId) {
     await sendToSignup(
       second,
       'second',
-      `${brand()}: You're 2nd in line! Our technician will be at ${second.address} after one more stop.`
+      `${brand()}: You're 2nd in line! Our technician will be at ${second.address} after one more stop. ` +
+        `Track progress: ${manageLink(second.token)}`
     );
   }
 }

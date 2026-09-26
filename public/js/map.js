@@ -107,7 +107,7 @@
       });
       queue.forEach((s, i) => {
         if (!has(s)) return;
-        markers.push(marker(s, div(`mk ${s.timePref}${i === 0 ? ' next' : ''}`, String(i + 1)), stopHtml(s, i === 0 ? 'Up next' : `Stop #${i + 1}`), 100 - i));
+        markers.push(marker(s, div(`mk ${s.markerClass || s.timePref}${i === 0 ? ' next' : ''}`, s.label ?? String(i + 1)), stopHtml(s, s.title || (i === 0 ? 'Up next' : `Stop #${i + 1}`)), 100 - i));
         points.push(s);
       });
 
