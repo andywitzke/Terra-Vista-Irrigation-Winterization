@@ -3,7 +3,18 @@ const app = require('./app');
 
 const usingDefaultPasswords = config.adminPassword === 'admin' || config.techPassword === 'tech';
 if (usingDefaultPasswords && (process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production')) {
-  console.error('Refusing to start: set ADMIN_PASSWORD and TECH_PASSWORD (the defaults "admin"/"tech" are not allowed in production).');
+  const why = (name, fallback) => {
+    const raw = process.env[name];
+    if (raw === undefined) return `${name} is not set`;
+    if (!raw.trim()) return `${name} is empty`;
+    return raw.trim() === fallback ? `${name} is still the default "${fallback}"` : null;
+  };
+  const problems = [why('ADMIN_PASSWORD', 'admin'), why('TECH_PASSWORD', 'tech')].filter(Boolean);
+  // Names only, never values, to help spot typos like "ADMIN_PASSWORD " or "ADMIN_PASSWORDS".
+  const lookalikes = Object.keys(process.env).filter((k) => /pass|admin|tech/i.test(k));
+  console.error(`Refusing to start: ${problems.join('; ')}.`);
+  console.error('Set ADMIN_PASSWORD and TECH_PASSWORD on this service (Railway: service > Variables), then deploy.');
+  console.error(`Related variable names this service can see: ${lookalikes.length ? lookalikes.map((k) => JSON.stringify(k)).join(', ') : '(none)'}`);
   process.exit(1);
 }
 

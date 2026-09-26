@@ -26,8 +26,8 @@ const config = {
   addressSuffix: env.ADDRESS_SUFFIX || '',
   defaultCapacity: Number(env.DEFAULT_DAY_CAPACITY) || 25,
 
-  adminPassword: env.ADMIN_PASSWORD || 'admin',
-  techPassword: env.TECH_PASSWORD || 'tech',
+  adminPassword: (env.ADMIN_PASSWORD || '').trim() || 'admin',
+  techPassword: (env.TECH_PASSWORD || '').trim() || 'tech',
   sessionSecret: env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
   sessionSecretIsRandom: !env.SESSION_SECRET,
 
