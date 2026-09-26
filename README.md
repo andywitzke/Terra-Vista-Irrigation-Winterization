@@ -10,6 +10,10 @@ A small web app for scheduling irrigation-system winterization in the Terra Vist
   complete, reorder or re-plan the route, share their live location, and move unfinished houses to the next available day.
 - **Texts** go out on sign-up, when a neighbor is 2nd in line, when they're next, and when their system is done.
 
+**User manual:** [docs/Terra-Vista-Winterization-User-Manual.pdf](docs/Terra-Vista-Winterization-User-Manual.pdf), a
+step-by-step guide with screenshots for neighbors, the administrator and the technician. To rebuild it after changing the
+app, run `node docs/manual/capture.js` (new screenshots) and then `node docs/manual/build.js`.
+
 ## Pages
 
 | URL | Who | What |

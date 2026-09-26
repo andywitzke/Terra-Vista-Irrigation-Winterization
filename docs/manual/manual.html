@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Terra Vista Sprinkler Winterization — User Manual</title>
+<style>
+  @page { size: Letter; margin: 0.7in 0.75in 0.8in; }
+  @page :first { margin: 0; }
+  :root {
+    --green: #1f7a4d; --green-soft: #e3f2ea; --ink: #1c2b24; --muted: #5d6f66; --border: #d6e0db;
+    --am: #2563eb; --pm: #d97706; --any: #7c3aed; --warn-soft: #fff4dc; --warn: #8a5800;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; color: var(--ink); font: 10.5pt/1.5 "DejaVu Sans", system-ui, sans-serif; }
+  h1, h2, h3 { line-height: 1.25; color: var(--ink); }
+  h1 { font-size: 22pt; margin: 0 0 6pt; color: var(--green); }
+  h2 { font-size: 14pt; margin: 20pt 0 6pt; padding-bottom: 3pt; border-bottom: 1.5pt solid var(--green-soft); break-after: avoid; }
+  h3 { font-size: 11.5pt; margin: 14pt 0 4pt; break-after: avoid; }
+  p { margin: 0 0 7pt; }
+  ul, ol { margin: 0 0 8pt; padding-left: 18pt; }
+  li { margin-bottom: 3pt; }
+  code, .mono { font-family: "DejaVu Sans Mono", monospace; font-size: 9pt; background: #f1f4f2; padding: 0 3pt; border-radius: 3pt; }
+  b.ui { font-weight: 700; color: var(--green); }
+  .chapter { break-before: page; }
+  .chapter-num { color: var(--muted); font-size: 10pt; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2pt; }
+
+  /* cover */
+  .cover { height: 11in; padding: 1.4in 1in 0.9in; background: var(--green); color: #fff; display: flex; flex-direction: column; }
+  .cover .drop { font-size: 54pt; line-height: 1; }
+  .cover h1 { color: #fff; font-size: 32pt; margin: 18pt 0 8pt; }
+  .cover .sub { font-size: 14pt; opacity: 0.92; max-width: 5.2in; }
+  .cover .who { margin-top: 28pt; font-size: 11pt; line-height: 1.8; }
+  .cover .who span { display: inline-block; background: rgba(255,255,255,0.16); border-radius: 12pt; padding: 1pt 10pt; margin-right: 6pt; }
+  .cover .foot { margin-top: auto; font-size: 10pt; opacity: 0.85; }
+
+  /* contents */
+  .toc { list-style: none; padding: 0; margin: 10pt 0 0; font-size: 11pt; }
+  .toc li { display: flex; gap: 8pt; padding: 5pt 0; border-bottom: 0.75pt dotted var(--border); }
+  .toc li .n { width: 18pt; color: var(--green); font-weight: 700; }
+  .toc li .t { flex: 1; }
+  .toc li .d { color: var(--muted); font-size: 9.5pt; }
+  .toc li.sub { padding-left: 26pt; font-size: 10pt; border-bottom: none; padding-top: 1pt; padding-bottom: 1pt; color: var(--muted); }
+
+  /* figures */
+  figure { margin: 8pt 0 12pt; break-inside: avoid; }
+  figure img { display: block; border: 0.75pt solid var(--border); border-radius: 6pt; max-width: 100%; }
+  figure.wide img { width: 100%; }
+  figure.phone img { width: 2.0in; }
+  figure.phone.small img { width: 1.8in; }
+  figure.phone.tall img { width: 1.75in; }
+  figure .clip { overflow: hidden; border: 0.75pt solid var(--border); border-radius: 6pt; position: relative; }
+  figure .clip img { border: none; border-radius: 0; }
+  figure .clip::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 28pt;
+    background: linear-gradient(rgba(255,255,255,0), #fff); }
+  figcaption { font-size: 8.5pt; color: var(--muted); margin-top: 4pt; }
+  .side { display: flex; gap: 18pt; align-items: flex-start; break-inside: avoid; margin: 6pt 0 10pt; }
+  .side > figure { flex: none; margin: 0; }
+  .side > .text { flex: 1; min-width: 0; }
+  .pair { display: flex; gap: 14pt; align-items: flex-start; break-inside: avoid; }
+  .pair figure { margin: 6pt 0 10pt; }
+
+  /* callouts & tables */
+  .tip, .note, .warn { border-radius: 6pt; padding: 7pt 10pt; margin: 8pt 0 10pt; font-size: 9.8pt; break-inside: avoid; }
+  .tip { background: var(--green-soft); border-left: 3pt solid var(--green); }
+  .note { background: #eef3f0; border-left: 3pt solid #8aa596; }
+  .warn { background: var(--warn-soft); border-left: 3pt solid #d99a00; }
+  .tip b:first-child, .note b:first-child, .warn b:first-child { margin-right: 3pt; }
+  table { width: 100%; border-collapse: collapse; margin: 6pt 0 12pt; font-size: 9.5pt; break-inside: auto; }
+  th, td { text-align: left; vertical-align: top; padding: 5pt 7pt; border-bottom: 0.75pt solid var(--border); }
+  th { background: #eef3f0; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+  tr { break-inside: avoid; }
+  .pill { display: inline-block; font-size: 8pt; font-weight: 700; border-radius: 8pt; padding: 0 6pt; }
+  .pill.AM { background: #e0eaff; color: var(--am); } .pill.PM { background: #fdefd9; color: var(--pm); } .pill.ANY { background: #efe7ff; color: var(--any); }
+  .steps { counter-reset: s; list-style: none; padding-left: 0; }
+  .steps > li { counter-increment: s; position: relative; padding-left: 24pt; margin-bottom: 6pt; }
+  .steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 16pt; height: 16pt; border-radius: 50%;
+    background: var(--green); color: #fff; font-size: 8.5pt; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .flow { display: flex; gap: 6pt; margin: 8pt 0 12pt; break-inside: avoid; }
+  .flow div { flex: 1; background: #f4f7f5; border: 0.75pt solid var(--border); border-radius: 6pt; padding: 6pt 7pt; font-size: 8.8pt; }
+  .flow div b { display: block; color: var(--green); font-size: 9.5pt; margin-bottom: 2pt; }
+  .keep { break-inside: avoid; }
+  .compact { font-size: 10pt; line-height: 1.42; }
+  .compact h2 { margin-top: 13pt; }
+  .compact table td, .compact table th { padding: 3.5pt 6pt; }
+  .compact .flow { margin: 5pt 0 8pt; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ cover -->
+<section class="cover">
+  <div class="drop">💧</div>
+  <h1>Terra Vista Sprinkler Winterization</h1>
+  <div class="sub">User manual for the sign-up and scheduling website</div>
+  <div class="who">
+    <span>Neighbors</span><span>Administrator</span><span>Technician</span>
+  </div>
+  <div class="foot">2026 season · Plymouth, MN</div>
+</section>
+
+<!-- ============================================================ contents -->
+<section class="chapter" style="break-before: page">
+  <h1>Contents</h1>
+  <ol class="toc">
+    <li><span class="n">1</span><span class="t">Overview</span><span class="d">What the site does and how a season works</span></li>
+    <li><span class="n">2</span><span class="t">For neighbors</span><span class="d">Signing up, changing or cancelling, service day</span></li>
+    <li><span class="n">3</span><span class="t">Staff login</span><span class="d">Administrator and technician passwords</span></li>
+    <li><span class="n">4</span><span class="t">For the administrator</span><span class="d">Dates, sign-ups, map, exports, texts, settings</span></li>
+    <li><span class="n">5</span><span class="t">For the technician</span><span class="d">Running a service day from your phone</span></li>
+    <li><span class="n">6</span><span class="t">Text messages</span><span class="d">Every text the site sends, and when</span></li>
+    <li><span class="n">7</span><span class="t">Questions and troubleshooting</span><span class="d"></span></li>
+    <li><span class="n">A</span><span class="t">Appendix: hosting settings</span><span class="d">Railway variables, Google Maps, Twilio</span></li>
+  </ol>
+  <div class="note" style="margin-top:22pt"><b>About the screenshots.</b> They were taken with made-up sample neighbors and
+    phone numbers. In these pictures the maps are shown as a plain grid with the same pins and route line. On the live
+    site you'll see real Google Maps streets underneath.</div>
+</section>
+
+<!-- ============================================================ 1 overview -->
+<section class="chapter compact">
+  <div class="chapter-num">Chapter 1</div>
+  <h1>Overview</h1>
+  <p>The website lets Terra Vista neighbors sign up to have their irrigation system winterized. It schedules everyone
+    onto service days, plans the technician's route, and texts neighbors as the technician gets close.</p>
+
+  <h2>The four pages</h2>
+  <table>
+    <tr><th style="width:26%">Page</th><th style="width:20%">Who uses it</th><th>What it's for</th></tr>
+    <tr><td>Main page <code>/</code></td><td>Neighbors</td><td>The sign-up form. This is the address to share with the neighborhood.</td></tr>
+    <tr><td>Private registration link</td><td>Each neighbor</td><td>Sent to them by text. Shows their date and place in line, and lets them change or cancel.</td></tr>
+    <tr><td><code>/admin.html</code></td><td>Administrator</td><td>Open dates, manage every sign-up, see the map, export a spreadsheet, check texts.</td></tr>
+    <tr><td><code>/tech.html</code></td><td>Technician</td><td>The day's route, "up next", mark houses complete, share location.</td></tr>
+  </table>
+  <p style="font-size:9.8pt">The staff pages are password protected. The administrator password also opens the technician page.</p>
+
+  <h2>How a season works</h2>
+  <div class="flow">
+    <div><b>1. Open dates</b>The administrator adds service dates.</div>
+    <div><b>2. Neighbors sign up</b>They pick every day that works, and a time of day for each.</div>
+    <div><b>3. Route is planned</b>The site orders each day's houses by location and time of day.</div>
+    <div><b>4. Service day</b>The technician starts the day. Texts go out as each house comes up.</div>
+    <div><b>5. Wrap up</b>Unfinished houses move to the next open day.</div>
+  </div>
+
+  <h2>Morning, afternoon, or any time</h2>
+  <p>For each day that works, a neighbor picks one of:</p>
+  <ul>
+    <li><span class="pill AM">Morning</span> They want the morning of that day.</li>
+    <li><span class="pill PM">Afternoon</span> They want the afternoon.</li>
+    <li><span class="pill ANY">Any time</span> Either is fine. The site places them in whichever half fits the route best.</li>
+  </ul>
+  <p>Each date has a <b>morning limit (10)</b> and an <b>afternoon limit (15)</b>, 25 houses in total. The administrator
+    can change these for any date. When one half fills up, neighbors can still choose the other half or "any time" for
+    that date. When both halves are full, the date shows <b>Full</b>.</p>
+  <p>A neighbor is scheduled on the <b>earliest</b> date they picked that has room for the time they chose. Their other
+    dates are kept as backups in case the visit has to move.</p>
+</section>
+
+<!-- ============================================================ 2 neighbors -->
+<section class="chapter">
+  <div class="chapter-num">Chapter 2</div>
+  <h1>For neighbors</h1>
+
+  <h2>Signing up</h2>
+  <div class="side">
+    <figure class="phone"><img src="img/signup-top.png" alt="Sign-up page"><figcaption>The sign-up page on a phone</figcaption></figure>
+    <div class="text">
+      <p>Open the website on a phone or computer. The top of the page explains the service and the price for the season.</p>
+      <ol class="steps">
+        <li>Enter your <b>name</b>, <b>mobile phone number</b> and <b>street address</b> (house number and street is enough).</li>
+        <li>Add any <b>notes</b> for the technician, for example gate codes, pets, or where the valve or controller is.</li>
+        <li>Under <b>Which days work for you?</b>, tick every date you could make work.</li>
+        <li>For each ticked date, choose <b>Morning</b>, <b>Afternoon</b> or <b>Any time</b>.</li>
+        <li>Leave <b>Text me about my appointment</b> ticked to get text updates.</li>
+        <li>Tap <b class="ui">Sign me up</b>.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="side">
+    <figure class="phone tall"><img src="img/signup-form.png" alt="Filled-in sign-up form"><figcaption>Choosing dates. The morning of Oct 7 is full, so it's crossed out.</figcaption></figure>
+    <div class="text">
+      <h3>Reading the date list</h3>
+      <p>Each date shows how many spots are left, for example <i>Morning 9 left · Afternoon 14 left</i>.</p>
+      <ul>
+        <li>If the morning or afternoon of a date is full, that choice is <b>crossed out</b>. You can still pick the other half or <b>Any time</b>.</li>
+        <li>If a date is completely full it shows <b>Full</b> and can't be ticked.</li>
+      </ul>
+      <div class="tip"><b>Tip:</b> Ticking more than one date makes it more likely you'll get an early slot. You're
+        booked on the earliest one with room. The others are only used if your visit has to be moved.</div>
+      <h3>If something goes wrong</h3>
+      <p>A red message explains what to fix, such as a missing name or a phone number that isn't 10 digits. If the dates you
+        picked fill up while you're signing up, the list refreshes. Pick another date and try again.</p>
+      <p>If you're already signed up for that address, the site texts you your private link again instead of creating a
+        second booking.</p>
+    </div>
+  </div>
+
+  <h2>Your confirmation</h2>
+  <div class="side">
+    <figure class="phone"><img src="img/signup-success.png" alt="Sign-up confirmation"><figcaption>After signing up</figcaption></figure>
+    <div class="text">
+      <p>The page shows the date and time of day you're booked for. If you asked for texts, you'll also get a confirmation text.</p>
+      <p>Both include your <b>private link</b>. Keep it: it's how you check your booking and make changes. Anyone with the
+        link can see and change your registration, so don't post it publicly.</p>
+      <div class="note"><b>Lost your link?</b> At the bottom of the main page, open <b>Already signed up? Text me my link</b>,
+        enter your mobile number and tap <b class="ui">Send link</b>.</div>
+    </div>
+  </div>
+
+  <h2>Changing or cancelling</h2>
+  <div class="side">
+    <figure class="phone"><div class="clip" style="width:2.0in; max-height:5.0in"><img src="img/manage.png" alt="Manage registration page"></div><figcaption>Your private registration page (top part)</figcaption></figure>
+    <div class="text">
+      <p>Open your private link. The top card shows your current booking. Below it you can:</p>
+      <ul>
+        <li>Change your name, phone, address or notes.</li>
+        <li>Change which days work for you and the time of day for each.</li>
+        <li>Turn text updates on or off.</li>
+      </ul>
+      <p>Tap <b class="ui">Save changes</b>. If you choose different dates, you're rebooked on the earliest one with room,
+        and you get a new confirmation text.</p>
+      <p>To cancel, tap <b>Cancel my sign-up</b> and confirm. You can sign up again later from the main page.</p>
+      <div class="note"><b>On your service day</b>, once the technician has started, you can no longer change the date or address
+        here. Call or text the organizer instead. You can still update your notes.</div>
+    </div>
+  </div>
+
+  <h2>On your service day</h2>
+  <div class="side">
+    <figure class="phone small"><img src="img/manage-second-in-line.png" alt="Place in line"><figcaption>Your place in line updates automatically</figcaption></figure>
+    <div class="text">
+      <p>Once the technician starts the day, you'll get texts:</p>
+      <ol>
+        <li><b>You're 2nd in line</b>: the technician has one more stop before yours.</li>
+        <li><b>You're next</b>: the technician is on the way. Please unlock gates and make sure the valve is reachable.</li>
+        <li><b>Done</b>: your system has been winterized, with any notes from the technician.</li>
+      </ol>
+      <p>Your private link also shows your place in line and refreshes every 30 seconds.</p>
+      <p>If the technician can't get to you that day, you'll get a text with your new date.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 3 login -->
+<section class="chapter">
+  <div class="chapter-num">Chapter 3</div>
+  <h1>Staff login</h1>
+  <div class="side">
+    <figure class="phone small"><img src="img/login.png" alt="Staff login"><figcaption>The staff login page</figcaption></figure>
+    <div class="text">
+      <p>Go to <code>/admin.html</code> or <code>/tech.html</code>. If you aren't logged in, the login page opens.</p>
+      <ol class="steps">
+        <li>Choose <b>Technician</b> or <b>Administrator</b>.</li>
+        <li>Enter the password.</li>
+        <li>Tap <b class="ui">Log in</b>.</li>
+      </ol>
+      <p>You stay logged in on that device for two weeks, or until you tap <b>Log out</b> at the top of the page.</p>
+      <div class="note"><b>Passwords</b> are set by whoever manages the hosting (see the Appendix). The administrator
+        password works on both logins. If you change a password, everyone has to log in again.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 4 admin -->
+<section class="chapter">
+  <div class="chapter-num">Chapter 4</div>
+  <h1>For the administrator</h1>
+  <p>The admin page has five tabs: <b>Sign-ups</b>, <b>Dates</b>, <b>Map</b>, <b>Text log</b> and <b>Settings</b>.
+    Links at the top open the public sign-up page and the technician view.</p>
+
+  <h2>Dates: opening days for sign-up</h2>
+  <figure class="wide"><img src="img/admin-dates.png" alt="Dates tab"><figcaption>The Dates tab. Oct 7 has its morning limit lowered to 2.</figcaption></figure>
+  <h3>Adding dates</h3>
+  <ol class="steps">
+    <li>Pick a <b>Date</b>. To add several days at once, also pick a <b>Through</b> date.</li>
+    <li>Tick <b>Include weekends</b> if the range should include Saturdays and Sundays (they're skipped otherwise).</li>
+    <li>Set the <b>Morning limit</b> and <b>Afternoon limit</b> (10 and 15 unless you change them).</li>
+    <li>Click <b class="ui">Add date(s)</b>.</li>
+  </ol>
+  <h3>The dates list</h3>
+  <table>
+    <tr><th style="width:25%">Column / button</th><th>What it does</th></tr>
+    <tr><td>Booked</td><td>Total booked out of the day's limit, then how many chose morning, afternoon, and any time. <b>Full</b> means no spots are left.</td></tr>
+    <tr><td>Morning / Afternoon limit</td><td>Type a new number to change it. It saves as soon as you click away.</td></tr>
+    <tr><td>Open to public</td><td>Untick to stop new sign-ups for that date. People already booked stay booked.</td></tr>
+    <tr><td>Status</td><td><b>Not started</b>, <b>In progress</b> (the technician started it) or <b>Done</b>.</td></tr>
+    <tr><td>Tech view / Map</td><td>Open that date in the technician view, or on the Map tab.</td></tr>
+    <tr><td>Roll over unfinished</td><td>Moves every house on that date that isn't complete to its next available day, and texts them.</td></tr>
+    <tr><td>Reset status</td><td>Shown for started or finished days. Sets the day back to Not started, for example after a test run.</td></tr>
+    <tr><td>Delete</td><td>Removes the date. If people are booked on it, you're warned first. If you go ahead, they're marked <b>Needs a date</b>.</td></tr>
+  </table>
+
+  <h2>Sign-ups: everyone who registered</h2>
+  <figure class="wide"><img src="img/admin-signups.png" alt="Sign-ups tab"><figcaption>The Sign-ups tab</figcaption></figure>
+  <ul>
+    <li><b>Filters:</b> show one date (or <b>Needs a date</b>), and one status. The search box matches name, address, phone and notes.</li>
+    <li><b>Counts</b> across the top: total, scheduled, completed, needing a date, and <b>Not on map</b> (addresses Google couldn't find).</li>
+    <li><b>#</b> is the house's position in that day's route. <b>Time</b> shows what they chose. For "any time" neighbors it also shows which half of the day they were placed in.</li>
+    <li><b>OK days</b> lists every date the neighbor said works, with their time of day for each.</li>
+  </ul>
+  <table>
+    <tr><th style="width:25%">Button</th><th>What it does</th></tr>
+    <tr><td>Edit</td><td>Change anything about the sign-up (see below).</td></tr>
+    <tr><td>Next day →</td><td>Moves the house to the next open date with room for their time of day, preferring dates they picked. They get a text. If no date has room, they're marked <b>Needs a date</b>.</td></tr>
+    <tr><td>✕</td><td>Deletes the sign-up permanently. No text is sent. To keep a record instead, use Edit and set Status to Cancelled (that doesn't text them either, so let the neighbor know yourself).</td></tr>
+    <tr><td>retry (under "Not located")</td><td>Asks Google to find the address again, for example after you fix a typo.</td></tr>
+  </table>
+
+  <h3>Adding or editing a sign-up</h3>
+  <div class="side">
+    <figure style="width:3.1in"><img src="img/admin-edit.png" alt="Edit dialog" style="width:100%"><figcaption>The edit window</figcaption></figure>
+    <div class="text">
+      <p>Click <b class="ui">+ Add sign-up</b> (for someone who called or emailed), or <b>Edit</b> on a row.</p>
+      <ul>
+        <li><b>Scheduled day</b> and <b>Time of day</b> place them directly on a date.</li>
+        <li><b>Status</b>: Scheduled, Completed, Needs a date, or Cancelled.</li>
+        <li><b>Technician notes</b> appear in their "done" text.</li>
+        <li><b>Other days that work</b> are the backup dates used for moves.</li>
+        <li><b>Allow over capacity</b> lets you book someone even when that half of the day is full.</li>
+        <li><b>Send confirmation text</b> (new sign-ups) or <b>Text them if their date changes</b> (edits).</li>
+      </ul>
+      <p>A name, a 10-digit phone number and an address are required.</p>
+    </div>
+  </div>
+
+  <h3>Exporting a spreadsheet</h3>
+  <p>Click <b class="ui">⬇ Export CSV</b>. The file opens in Excel, Numbers or Google Sheets. It uses the same date and status
+    filters as the list, so set those first to export one day. The columns are: service date, time preference, planned
+    half of the day, route number, status, name, address, the address as Google found it, phone, neighbor notes,
+    technician notes, acceptable dates, whether texts are allowed, completion time and sign-up time.</p>
+
+  <h2>Map: where everyone is</h2>
+  <figure class="wide"><img src="img/admin-map.png" alt="Map tab" style="max-height:6.4in; width:auto; max-width:100%"><figcaption>The Map tab during a service day</figcaption></figure>
+  <p>Choose a date to see its houses numbered in route order. Colors show morning (blue), afternoon (orange) and any time
+    (purple). Completed houses have a green check. The technician is the light-blue dot, and 🏁 is the start point. The
+    dashed line is the rest of the route. Below the map, <b>Today's queue</b> lists the remaining stops under Morning and
+    Afternoon headings, and notes who has already been texted. Choose <b>All sign-ups</b> to see every registration at once.</p>
+  <p>The map refreshes every 20 seconds. Click a pin to see the neighbor's details, or use <b>Fit map</b> to zoom to all pins.</p>
+
+  <h2>Text log: every message sent</h2>
+  <figure class="wide"><img src="img/admin-texts.png" alt="Text log" style="max-height:4.6in; width:auto; max-width:100%"><figcaption>The Text log tab</figcaption></figure>
+  <p>Shows the latest 500 texts, newest first, with the full message. The <b>Status</b> column shows:</p>
+  <ul>
+    <li><b>sent</b>: accepted by Twilio for delivery.</li>
+    <li><b>failed</b>: Twilio refused it. The reason appears underneath (for example an invalid number).</li>
+    <li><b>simulated</b>: Twilio isn't set up yet, so the text was only recorded here, not sent. This is what the screenshot shows.</li>
+  </ul>
+
+  <h2>Settings</h2>
+  <figure class="wide"><img src="img/admin-settings.png" alt="Settings tab" style="max-height:3.6in; width:auto; max-width:100%"><figcaption>The Settings tab</figcaption></figure>
+  <p><b>Route start point</b> is where the technician begins each day, such as the neighborhood entrance. It's used to plan
+    routes until the technician shares their live location. Enter an address and click <b class="ui">Save</b>. The line
+    below shows the address Google found. Leave it blank to let the route start at whichever end of the neighborhood works best.</p>
+  <p><b>Integrations</b> shows whether texting and Google Maps are set up, and the web address used in text links. These are
+    changed in the hosting settings (see the Appendix).</p>
+</section>
+
+<!-- ============================================================ 5 tech -->
+<section class="chapter">
+  <div class="chapter-num">Chapter 5</div>
+  <h1>For the technician</h1>
+  <p>The technician page is designed for a phone. Log in at <code>/tech.html</code>. It opens the day in progress, or
+    else today or the next upcoming date. Use the date menu at the top to switch days.</p>
+
+  <h2>Before you start</h2>
+  <div class="side">
+    <figure class="phone"><img src="img/tech-before-start.png" alt="Technician view before starting"><figcaption>A day that hasn't started yet</figcaption></figure>
+    <div class="text">
+      <p>The page shows the planned route: a map and a numbered list under <b>Morning</b> and <b>Afternoon</b> headings.</p>
+      <ul>
+        <li>Morning houses come first, in driving order from the start point. Afternoon houses continue from where the morning ends.</li>
+        <li>"Any time" houses are placed in whichever half is closest, without going over that half's limit.</li>
+        <li>Until you start, the route updates by itself whenever someone signs up or changes their booking.</li>
+      </ul>
+      <p>Tick <b>Share my location</b> and allow location when your phone asks. Your position then shows on the map for you
+        and the administrator. If you said no by mistake, turn location back on for this site in your browser settings.</p>
+      <div class="warn"><b>No texts go out yet.</b> Neighbors aren't texted about their place in line until you tap
+        <b>Start day</b>.</div>
+    </div>
+  </div>
+
+  <h2>Starting the day</h2>
+  <p>Tap <b class="ui">▶ Start day</b>. This:</p>
+  <ul>
+    <li>locks in the current route order, so it no longer rearranges itself,</li>
+    <li>texts the first house <b>"you're next"</b> and the second house <b>"you're 2nd in line"</b>,</li>
+    <li>turns on location sharing if it isn't already on.</li>
+  </ul>
+
+  <h2>Working through the queue</h2>
+  <div class="side">
+    <figure class="phone"><img src="img/tech-top.png" alt="Up next card and map"><figcaption>The "Up next" card and map during the day</figcaption></figure>
+    <div class="text">
+      <p>The <b>Up next</b> card shows the next house: address, name, phone number, time of day, and the neighbor's notes
+        (highlighted in yellow). It also shows the house after it.</p>
+      <ul>
+        <li><b>🧭 Navigate</b> opens Google Maps with driving directions to the house.</li>
+        <li>Tap the <b>phone number</b> to call the neighbor.</li>
+        <li><b>✓ Mark complete</b> when you're done (see below).</li>
+      </ul>
+      <p>On the map, the dark-outlined pin is the next stop. The blue dot is you, and the dashed line is the rest of the route.</p>
+      <p>The summary under the buttons shows how many houses are done and how many remain. The page refreshes every 30 seconds.</p>
+    </div>
+  </div>
+
+  <div class="side">
+    <figure class="phone"><img src="img/tech-complete.png" alt="Mark complete dialog"><figcaption>Marking a house complete</figcaption></figure>
+    <div class="text">
+      <h3>Marking a house complete</h3>
+      <ol class="steps">
+        <li>Tap <b class="ui">✓ Mark complete</b> (or <b>✓ Complete</b> on any house in the list).</li>
+        <li>Optionally type notes for the homeowner, such as how many zones you blew out or anything that needs repair. These notes are included in their text.</li>
+        <li>Tap <b class="ui">✓ Complete</b>.</li>
+      </ol>
+      <p>The homeowner gets a "done" text. The next house gets "you're next", and the one after gets "you're 2nd in line".</p>
+      <h3>Changing the order</h3>
+      <ul>
+        <li><b>▲ / ▼</b> move a house up or down the list. Moving a house to the top texts them that they're next.</li>
+        <li><b>↻ Re-plan from here</b> re-orders all remaining houses starting from where you are now. It still keeps morning houses before afternoon ones.</li>
+      </ul>
+      <h3>Can't do a house today?</h3>
+      <p>Tap <b>Move to next day</b> on it. The house moves to the next open date with room for their time of day, and the
+        neighbor gets a text with the new date.</p>
+    </div>
+  </div>
+
+  <div class="side">
+    <figure class="phone"><div class="clip" style="width:1.9in; max-height:6.2in"><img src="img/tech-queue.png" alt="Queue list"></div><figcaption>The queue list, split into Morning and Afternoon</figcaption></figure>
+    <div class="text">
+      <h3>The queue list</h3>
+      <p>Below the map, every remaining house is listed in route order under <b>Morning</b> and <b>Afternoon</b> headings.
+        The circle color matches the neighbor's choice: blue morning, orange afternoon, purple any time. Each house has
+        <b>✓ Complete</b>, <b>Navigate</b>, <b>▲ ▼</b> and <b>Move to next day</b> buttons. If Google couldn't find an
+        address, the house says <i>not on map</i>.</p>
+      <h3>Completed houses</h3>
+      <figure class="phone small" style="margin:4pt 0 8pt"><img src="img/tech-completed.png" alt="Completed list"><figcaption>Completed houses, with Undo</figcaption></figure>
+      <p>Tap <b>Completed</b> at the bottom of the page to see finished houses, the time each was done, and your notes.
+        Marked one by mistake? Tap <b>Undo</b>. The house goes back to the top of the queue, and the homeowner isn't sent
+        another "done" text.</p>
+    </div>
+  </div>
+
+  <h2>Ending the day</h2>
+  <div class="side">
+    <figure class="phone small"><img src="img/tech-end-day.png" alt="End day dialog"><figcaption>Ending the day with houses left</figcaption></figure>
+    <div class="text">
+      <p>Tap <b>End day…</b>. If houses are left, leave <b>Move unfinished stops to their next available day and text them</b>
+        ticked, then tap <b class="ui">End day</b>.</p>
+      <ul>
+        <li>Each unfinished house moves to the next open date with room for its time of day. Dates the neighbor picked are tried first.</li>
+        <li>Each neighbor gets a text with their new date.</li>
+        <li>A house with nowhere to go is marked <b>Needs a date</b> for the administrator. That neighbor is texted that they'll be rescheduled.</li>
+      </ul>
+      <p>Ended a day too early? Choose that date again and tap <b>▶ Reopen day</b>.</p>
+    </div>
+  </div>
+
+  <h2>Location tips</h2>
+  <ul>
+    <li>Location only updates while the technician page is <b>open on screen</b>. Phones pause it when the screen locks or the
+      browser is in the background, so reopen the page between houses.</li>
+    <li>Your position is sent about every 15 seconds. The administrator's map hides it if it's more than 30 minutes old.</li>
+    <li>Untick <b>Share my location</b> to stop sharing.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ 6 texts -->
+<section class="chapter">
+  <div class="chapter-num">Chapter 6</div>
+  <h1>Text messages</h1>
+  <p>Texts go only to neighbors who ticked <b>Text me about my appointment</b>. Every text is listed on the admin
+    <b>Text log</b> tab. Each one starts with <i>"Terra Vista Winterization:"</i>. Cancelling or deleting a sign-up
+    from the admin page doesn't send a text.</p>
+  <table>
+    <tr><th style="width:22%">When</th><th>What it says (example)</th></tr>
+    <tr><td>Right after signing up</td><td>You're signed up for Mon, Oct 5 (morning) at 16410 58th Ave N. We'll text you when you're 2nd in line, next, and when it's done. Edit or cancel: <i>[private link]</i> Reply STOP to opt out.</td></tr>
+    <tr><td>Their booking moves to a new date</td><td>Your winterization at 16410 58th Ave N has been moved to Tue, Oct 6 (any time). Details or changes: <i>[private link]</i></td></tr>
+    <tr><td>Moved, but no date has room</td><td>We weren't able to get to 16410 58th Ave N on Mon, Oct 5. We'll text you as soon as it's rescheduled. Sorry for the delay!</td></tr>
+    <tr><td>2nd in line (service day)</td><td>You're 2nd in line! Our technician will be at 16410 58th Ave N after one more stop.</td></tr>
+    <tr><td>Next (service day)</td><td>You're next! Our technician is heading to 16410 58th Ave N now. Please make sure gates are unlocked and the backflow/shutoff valve is accessible.</td></tr>
+    <tr><td>Done</td><td>Your irrigation system at 16410 58th Ave N has been winterized. Technician notes: Blew out 6 zones. Thank you!</td></tr>
+    <tr><td>They cancel from their private link</td><td>Your sign-up for 16410 58th Ave N has been cancelled. Sign up again anytime at <i>[site address]</i></td></tr>
+    <tr><td>They use "Text me my link"</td><td>Manage your sign-up for 16410 58th Ave N: <i>[private link]</i></td></tr>
+    <tr><td>They try to sign up the same address twice</td><td>You're already registered. Manage your sign-up: <i>[private link]</i></td></tr>
+  </table>
+  <div class="note"><b>Replies.</b> Texts come from the site's Twilio number. If a neighbor replies <b>STOP</b>, Twilio stops
+    sending them texts. Other replies aren't read by the website, so tell neighbors to call or text the organizer directly.</div>
+</section>
+
+<!-- ============================================================ 7 faq -->
+<section class="chapter">
+  <div class="chapter-num">Chapter 7</div>
+  <h1>Questions and troubleshooting</h1>
+
+  <div class="keep"><h3>A neighbor says they didn't get a text.</h3>
+  <p>Look them up on the <b>Text log</b>. <b>simulated</b> means texting isn't set up yet. <b>failed</b> shows the reason
+    underneath. If there's no entry, check on the Sign-ups tab that "no texts" isn't shown under their phone number. If
+    it is, they opted out when signing up.</p></div>
+
+  <div class="keep"><h3>A house shows "Not located" or isn't on the map.</h3>
+  <p>Google couldn't find the address. Click <b>Edit</b>, correct the address (house number and street name), and save, or
+    click <b>retry</b>. Houses that aren't on the map still appear in the technician's list, at the end of their half of the day.</p></div>
+
+  <div class="keep"><h3>A date is full but I need to fit someone in.</h3>
+  <p>Raise that date's morning or afternoon limit on the <b>Dates</b> tab. To add just one person, use <b>Edit</b>, choose
+    the date, and tick <b>Allow over capacity</b>.</p></div>
+
+  <div class="keep"><h3>The route order looks wrong.</h3>
+  <p>Set the <b>Route start point</b> under Settings. The technician can also tap <b>↻ Re-plan from here</b>, or use ▲/▼.
+    Routes are planned by straight-line distance, so a river or dead end can occasionally make the order less than ideal.</p></div>
+
+  <div class="keep"><h3>I did a test run and want to start the day over.</h3>
+  <p>On the Dates tab, click <b>Reset status</b> for that date. To undo test completions, the technician can tap
+    <b>Undo</b>, or you can edit each sign-up and set its status back to Scheduled.</p></div>
+
+  <div class="keep"><h3>Someone needs to be moved to a specific date.</h3>
+  <p>Click <b>Edit</b>, choose the <b>Scheduled day</b> and <b>Time of day</b>, tick <b>Text them if their date changes</b>, and save.</p></div>
+
+  <div class="keep"><h3>The technician's location isn't showing.</h3>
+  <p>Make sure <b>Share my location</b> is ticked and shows <i>(on)</i>, that the page is open on screen, and that location
+    is allowed for the site in the phone's settings. Location sharing only works on the secure (https) address.</p></div>
+
+  <div class="keep"><h3>The staff pages keep asking me to log in.</h3>
+  <p>Logins last two weeks per device. If everyone is logged out after every update, the hosting is missing the
+    <code>SESSION_SECRET</code> setting (see the Appendix).</p></div>
+</section>
+
+<!-- ============================================================ appendix -->
+<section class="chapter">
+  <div class="chapter-num">Appendix</div>
+  <h1>Hosting settings</h1>
+  <p>For whoever manages the site on Railway. Settings are entered in Railway under the service's <b>Variables</b> tab.
+    After changing them, deploy the changes when Railway prompts you. Never put passwords or keys in the GitHub repository.</p>
+  <table>
+    <tr><th style="width:32%">Variable</th><th>What it's for</th></tr>
+    <tr><td><code>ADMIN_PASSWORD</code></td><td>Administrator password. Required.</td></tr>
+    <tr><td><code>TECH_PASSWORD</code></td><td>Technician password. Required.</td></tr>
+    <tr><td><code>SESSION_SECRET</code></td><td>Any long random string. Keeps staff logged in across updates.</td></tr>
+    <tr><td><code>ADDRESS_SUFFIX</code></td><td><code>Plymouth, MN 55446</code>. Added to addresses so Google finds them in the neighborhood.</td></tr>
+    <tr><td><code>TZ_NAME</code></td><td><code>America/Chicago</code> (the default). Used for "today".</td></tr>
+    <tr><td><code>GOOGLE_MAPS_API_KEY</code></td><td>Google key with the Maps JavaScript API and Geocoding API turned on.</td></tr>
+    <tr><td><code>TWILIO_ACCOUNT_SID</code>, <code>TWILIO_AUTH_TOKEN</code>, <code>TWILIO_FROM_NUMBER</code></td><td>Twilio account details and the number texts come from. Until these are set, texts show as "simulated".</td></tr>
+    <tr><td><code>DEFAULT_AM_CAPACITY</code>, <code>DEFAULT_PM_CAPACITY</code></td><td>Limits pre-filled for new dates (10 and 15).</td></tr>
+    <tr><td><code>BASE_URL</code></td><td>Only needed with a custom domain. Otherwise the Railway address is used automatically.</td></tr>
+  </table>
+  <h3>Keeping sign-ups safe</h3>
+  <ul>
+    <li>The service needs a <b>volume</b> attached at <code>/data</code>. Without it, sign-ups are lost whenever the site updates.</li>
+    <li>Keep the service at <b>one replica</b>.</li>
+    <li>For a backup, use <b>Export CSV</b> on the admin Sign-ups tab.</li>
+  </ul>
+  <h3>Google Maps key</h3>
+  <p>In Google Cloud Console, limit the key to the site's address (<code>https://your-site.up.railway.app/*</code>) so others can't use it.</p>
+  <h3>Twilio</h3>
+  <p>US texting from a website requires Twilio's business registration (A2P 10DLC) or a verified toll-free number. Until
+    it's approved, texts may not be delivered.</p>
+</section>
+
+</body>
+</html>
