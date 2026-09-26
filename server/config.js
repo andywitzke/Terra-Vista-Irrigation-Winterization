@@ -22,6 +22,8 @@ const config = {
   onRailwayWithoutVolume: Boolean(env.RAILWAY_ENVIRONMENT && !env.RAILWAY_VOLUME_MOUNT_PATH && !env.DB_PATH),
   timeZone: env.TZ_NAME || 'America/Chicago',
   neighborhoodName: env.NEIGHBORHOOD_NAME || 'Terra Vista',
+  // The person who runs the program; shown in every text so recipients know who is texting them.
+  organizerName: env.ORGANIZER_NAME ?? 'Andy Witzke',
   // Appended to addresses before geocoding so "123 Main St" resolves inside the neighborhood.
   addressSuffix: env.ADDRESS_SUFFIX || '',
   defaultAmCapacity: Number(env.DEFAULT_AM_CAPACITY) || 10,

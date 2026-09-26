@@ -223,7 +223,7 @@ async function sendToSignup(s, kind, body) {
   return sendSms({ to: s.phone, body, kind, signupId: s.id });
 }
 
-const brand = () => `${config.neighborhoodName} Winterization`;
+const brand = () => `${config.neighborhoodName} Winterization${config.organizerName ? ` (${config.organizerName})` : ''}`;
 
 async function sendConfirmation(s) {
   const day = get('SELECT * FROM work_days WHERE id = ?', s.assigned_day_id);
