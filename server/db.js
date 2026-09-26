@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS signups (
   time_pref TEXT NOT NULL DEFAULT 'ANY',  -- AM | PM | ANY for the assigned day
   route_order INTEGER,
   route_session TEXT,
+  sms_consent_at TEXT,
+  terms_accepted_at TEXT,
   completed_at TEXT,
   tech_notes TEXT NOT NULL DEFAULT '',
   notified_second_at TEXT,
@@ -92,6 +94,10 @@ if (!hasColumn('work_days', 'am_capacity')) {
     ALTER TABLE work_days ADD COLUMN pm_capacity INTEGER NOT NULL DEFAULT 15;
     UPDATE work_days SET am_capacity = MIN(10, capacity), pm_capacity = MAX(0, capacity - MIN(10, capacity));
   `);
+}
+if (!hasColumn('signups', 'sms_consent_at')) {
+  // Proof of consent: when the neighbor ticked the text-message box / agreed to the Terms.
+  db.exec('ALTER TABLE signups ADD COLUMN sms_consent_at TEXT; ALTER TABLE signups ADD COLUMN terms_accepted_at TEXT;');
 }
 if (!hasColumn('signups', 'route_session')) {
   // Which half of the day the route planner put this stop in: AM | PM

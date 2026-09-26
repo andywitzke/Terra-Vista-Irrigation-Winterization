@@ -232,8 +232,8 @@ async function sendConfirmation(s) {
     s,
     'confirmation',
     `${brand()}: You're signed up for ${when} at ${s.address}. ` +
-      `We'll text you when you're 2nd in line, next, and when it's done. ` +
-      `Edit or cancel: ${manageLink(s.token)} Reply STOP to opt out.`
+      `We'll text you when you're 2nd in line, next, and when it's done: about 4 msgs per appointment, up to 6 if it changes. ` +
+      `Msg & data rates may apply. Reply HELP for help, STOP to opt out. Manage: ${manageLink(s.token)}`
   );
 }
 
@@ -241,7 +241,9 @@ async function createSignup(input, { admin = false } = {}) {
   const name = validateName(input.name);
   const { address, phone } = validateContact(input);
   const notes = String(input.notes || '').trim().slice(0, 1000);
-  const smsOptIn = input.smsOptIn === undefined ? true : Boolean(input.smsOptIn);
+  // Texts only with an explicit opt-in (the box starts unticked).
+  const smsOptIn = Boolean(input.smsOptIn);
+  if (!admin && !input.acceptTerms) throw new HttpError(400, 'Please agree to the Terms and Privacy Policy.');
   const prefs = cleanPrefs(input.prefs);
 
   // Admins can place someone directly on a day (optionally over capacity).
@@ -276,8 +278,9 @@ async function createSignup(input, { admin = false } = {}) {
       }
     }
     const info = run(
-      `INSERT INTO signups (token, name, address, phone, notes, sms_opt_in, lat, lng, formatted_address, status, assigned_day_id, time_pref)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO signups (token, name, address, phone, notes, sms_opt_in, lat, lng, formatted_address, status, assigned_day_id, time_pref,
+         sms_consent_at, terms_accepted_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       newToken(),
       name,
       address,
@@ -289,7 +292,9 @@ async function createSignup(input, { admin = false } = {}) {
       geo?.formattedAddress ?? null,
       chosen ? 'scheduled' : 'unscheduled',
       chosen ? chosen.dayId : null,
-      chosen ? chosen.timePref : 'ANY'
+      chosen ? chosen.timePref : 'ANY',
+      smsOptIn ? nowIso() : null,
+      input.acceptTerms ? nowIso() : null
     );
     const id = Number(info.lastInsertRowid);
     savePrefs(id, prefs);
@@ -310,6 +315,7 @@ async function updateSignupByToken(token, input) {
   const { address, phone } = validateContact({ address: input.address ?? s.address, phone: input.phone ?? s.phone });
   const notes = String(input.notes ?? s.notes).trim().slice(0, 1000);
   const smsOptIn = input.smsOptIn === undefined ? s.sms_opt_in : input.smsOptIn ? 1 : 0;
+  if (smsOptIn && !s.sms_opt_in) run('UPDATE signups SET sms_consent_at = ? WHERE id = ?', nowIso(), s.id);
   const day = s.assigned_day_id ? get('SELECT * FROM work_days WHERE id = ?', s.assigned_day_id) : null;
   const dayStarted = day && day.status !== 'scheduled';
 
@@ -408,6 +414,7 @@ async function adminUpdateSignup(id, input) {
         s.id
       );
     }
+    if (input.smsOptIn && !s.sms_opt_in) run('UPDATE signups SET sms_consent_at = ? WHERE id = ?', nowIso(), s.id);
     if (input.prefs !== undefined) savePrefs(s.id, cleanPrefs(input.prefs));
 
     const newDayId = input.assignedDayId === undefined ? s.assigned_day_id : input.assignedDayId ? Number(input.assignedDayId) : null;

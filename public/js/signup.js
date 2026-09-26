@@ -27,12 +27,14 @@
       address: val('address'),
       notes: val('notes'),
       smsOptIn: document.getElementById('smsOptIn').checked,
+      acceptTerms: document.getElementById('acceptTerms').checked,
       prefs,
     };
     if (!body.name.trim()) return showAlert(errEl, 'Please enter your name.');
     if (!body.address.trim()) return showAlert(errEl, 'Please enter your street address.');
     if (body.phone.replace(/\D/g, '').length < 10) return showAlert(errEl, 'Please enter a 10-digit mobile phone number.');
     if (!prefs.length) return showAlert(errEl, 'Please choose at least one date that works for you.');
+    if (!body.acceptTerms) return showAlert(errEl, 'Please agree to the Terms and Privacy Policy.');
 
     const btn = document.getElementById('submit');
     btn.disabled = true;

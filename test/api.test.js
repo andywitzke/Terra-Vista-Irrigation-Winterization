@@ -15,6 +15,8 @@ let base;
 const cookies = {};
 
 async function req(method, path, body, role) {
+  // Public sign-ups in these tests opt in to texts and accept the Terms unless they say otherwise.
+  if (method === 'POST' && path === '/api/signups') body = { smsOptIn: true, acceptTerms: true, ...body };
   const res = await fetch(base + path, {
     method,
     headers: { 'Content-Type': 'application/json', ...(role ? { Cookie: cookies[role] } : {}) },
@@ -182,6 +184,27 @@ test('full season flow', async (t) => {
     r = await req('DELETE', `/api/signups/${tokens[3]}`);
     assert.strictEqual(r.data.status, 'cancelled');
   });
+});
+
+test('texts need an explicit opt-in and the Terms must be accepted', async () => {
+  const date = addDays(40);
+  const day = (await req('POST', '/api/admin/days', { date }, 'admin')).data.find((d) => d.date === date);
+  const base = { name: 'Opt', address: '7 Consent Way', phone: '9165554000', prefs: [{ dayId: day.id }] };
+  let r = await req('POST', '/api/signups', { ...base, acceptTerms: false });
+  assert.strictEqual(r.status, 400);
+  assert.match(r.data.error, /Terms/);
+  r = await req('POST', '/api/signups', { ...base, smsOptIn: false });
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(r.data.smsOptIn, false);
+  assert.strictEqual(all('SELECT * FROM sms_log WHERE to_phone = ?', '+19165554000').length, 0, 'no texts without opt-in');
+  const row = all('SELECT * FROM signups WHERE id = ?', r.data.id)[0];
+  assert.ok(row.terms_accepted_at && !row.sms_consent_at);
+  r = await req('PUT', `/api/signups/${r.data.token}`, { smsOptIn: true });
+  assert.ok(all('SELECT sms_consent_at FROM signups WHERE id = ?', r.data.id)[0].sms_consent_at, 'opting in later is recorded');
+  const conf = all(`SELECT body FROM sms_log WHERE kind = 'confirmation' ORDER BY id DESC LIMIT 1`)[0].body;
+  for (const needle of ['Terra Vista Winterization (Andy Witzke)', 'Msg & data rates may apply', 'HELP', 'STOP', 'up to 6']) {
+    assert.ok(conf.includes(needle), `confirmation mentions ${needle}`);
+  }
 });
 
 test('name is required', async () => {

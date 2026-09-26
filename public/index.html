@@ -47,8 +47,16 @@
         <div id="days" class="days"><p class="muted">Loading dates…</p></div>
 
         <label class="check" style="margin-top:16px">
-          <input type="checkbox" id="smsOptIn" checked>
-          <span>Text me about my appointment (confirmation, "you're next" alerts, and completion). Msg &amp; data rates may apply. Reply STOP to opt out.</span>
+          <input type="checkbox" id="smsOptIn">
+          <span>Yes, text me about my winterization appointment from Terra Vista Winterization (Andy Witzke): sign-up confirmation,
+            schedule changes, "you're 2nd in line" and "you're next" alerts, and a completion notice. About 4 messages per
+            appointment, up to 6 if it changes. Msg &amp; data rates may apply. Reply HELP for help, STOP to opt out.
+            Texts are optional and not required to sign up.</span>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="acceptTerms" required>
+          <span>I agree to the <a href="/terms.html" target="_blank">Terms &amp; Conditions</a> and
+            <a href="/privacy.html" target="_blank">Privacy Policy</a>.</span>
         </label>
 
         <div id="form-error" class="hidden" role="alert"></div>
@@ -80,6 +88,8 @@
       <div id="resend-msg" class="hidden"></div>
     </details>
 
+    <p class="small muted" style="text-align:center"><a href="/terms.html">Terms &amp; Conditions</a> ·
+      <a href="/privacy.html">Privacy Policy</a> · Questions? Call or text Andy Witzke at <a href="tel:+16122510478">612-251-0478</a></p>
     <p class="small muted" style="text-align:center">Staff: <a href="/tech.html">Technician</a> · <a href="/admin.html">Admin</a></p>
   </main>
   <script src="/js/common.js"></script>

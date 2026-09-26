@@ -176,7 +176,8 @@
     $('e-pref').value = s.timePref || 'ANY';
     $('e-status').value = s.status || 'scheduled';
     $('e-status-wrap').classList.toggle('hidden', isNew);
-    $('e-sms').checked = s.id ? s.smsOptIn : true;
+    // Only tick this when the neighbor opted in on the sign-up form.
+    $('e-sms').checked = s.id ? s.smsOptIn : false;
     $('e-over').checked = false;
     $('e-notify').checked = isNew;
     $('e-notify-label').textContent = isNew ? 'Send confirmation text' : 'Text them if their date changes';
